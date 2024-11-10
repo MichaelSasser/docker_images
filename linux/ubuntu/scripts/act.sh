@@ -12,10 +12,10 @@ sed 's|"||g' -i "/etc/environment"
 
 node_arch() {
   case "$(uname -m)" in
-    'aarch64') echo 'arm64' ;;
-    'x86_64') echo 'x64' ;;
-    'armv7l') echo 'armv7l' ;;
-    *) exit 1 ;;
+  'aarch64') echo 'arm64' ;;
+  'x86_64') echo 'x64' ;;
+  'armv7l') echo 'armv7l' ;;
+  *) exit 1 ;;
   esac
 }
 
@@ -130,7 +130,7 @@ for ver in "${NODE[@]}"; do
   wget "https://nodejs.org/download/release/latest-v${ver}.x/node-$VER-linux-$(node_arch).tar.xz" -O "node-$VER-linux-$(node_arch).tar.xz"
   tar -Jxf "node-$VER-linux-$(node_arch).tar.xz" --strip-components=1 -C "$NODEPATH"
   rm "node-$VER-linux-$(node_arch).tar.xz"
-  if [[ "${ver}" == "18" ]]; then  # make this version the default (latest LTS)
+  if [[ "${ver}" == "20" ]]; then # make this version the default (latest LTS)
     sed "s|^PATH=|PATH=$NODEPATH/bin:|mg" -i /etc/environment
   fi
   export PATH="$NODEPATH/bin:$PATH"
@@ -143,22 +143,22 @@ for ver in "${NODE[@]}"; do
 done
 
 case "$(uname -m)" in
-  'aarch64')
-    scripts=(
-      yq
-    )
-    ;;
-  'x86_64')
-    scripts=(
-      yq
-    )
-    ;;
-  'armv7l')
-    scripts=(
-      yq
-    )
-    ;;
-  *) exit 1 ;;
+'aarch64')
+  scripts=(
+    yq
+  )
+  ;;
+'x86_64')
+  scripts=(
+    yq
+  )
+  ;;
+'armv7l')
+  scripts=(
+    yq
+  )
+  ;;
+*) exit 1 ;;
 esac
 
 for SCRIPT in "${scripts[@]}"; do

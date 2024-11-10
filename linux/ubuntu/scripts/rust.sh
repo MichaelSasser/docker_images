@@ -14,15 +14,15 @@ apt-get -yq update
 apt-get -yq install build-essential llvm libssl-dev
 
 printf "\n\t🐋 Installing Rust 🐋\t\n"
-curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain=stable --profile=minimal
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=stable --profile=minimal -y
 
 source "${CARGO_HOME}/env"
 
 rustup component add rustfmt clippy
 
 printf "\n\t🐋 Installing cargo-binstall 🐋\t\n"
-# Pinned to commit-hash for latest release v1.4.7 to prevent accidental problems
-curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/f6a95fa733be466c0e66c360f52e1d6998e47f25/install-from-binstall-release.sh | bash
+# Pinned to commit-hash for latest release v1.10.12 to prevent accidental problems
+curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/dae59123ebcd0833a1b28f1af21ab08352d3965b/install-from-binstall-release.sh | bash
 
 cargo binstall -y bindgen-cli cbindgen cargo-audit cargo-outdated
 

@@ -24,7 +24,7 @@ env:
   SLUG_QUAY: ${{ vars.USERNAME_QUAY }}/ubuntu
   SLUG_DOCKER: ${{ vars.USERNAME_DOCKER }}/ubuntu
   DISTRO: ubuntu
-  NODE: '16 18 20'
+  NODE: '18 20'
   BUILD_REF: ${{ github.sha }}
   SKIP_TEST: false
   PUSH_GHCR: ${{ github.repository == (github.event.pull_request.head.repo.full_name || github.repository) && '1' || '' }}
@@ -52,7 +52,6 @@ jobs:
         TAG:
           - 24.04
           - 22.04
-          - 20.04
     steps:
       - uses: actions/setup-go@v5
         with:
@@ -79,7 +78,7 @@ jobs:
           make -C passt
           sudo make -C passt install
       - name: Force SLUG to lowercase
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           github-token: n/a
           script: |
@@ -114,9 +113,9 @@ jobs:
           fi
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build and push ${{ env.DISTRO }}:${{ env.TAG }}
         shell: buildah unshare pwsh "{0}"
@@ -212,7 +211,7 @@ jobs:
           go-version: '^1.16'
 
       - if: ${{ !env.SKIP_TEST }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: nektos/act
           path: act
@@ -240,7 +239,6 @@ jobs:
         TAG:
           - 24.04
           - 22.04
-          - 20.04
         TYPE:
           # - go
           # - js
@@ -249,7 +247,7 @@ jobs:
           # - dotnet
           # - java-tools
           # - gh
-          - custom
+          - default
         include:
           # - PLATFORMS: linux/amd64,linux/arm64
           #   TYPE: go
@@ -266,7 +264,7 @@ jobs:
           # - PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
           #   TYPE: gh
           - PLATFORMS: linux/amd64,linux/arm64
-            TYPE: custom
+            TYPE: default
     steps:
       - uses: actions/setup-go@v5
         with:
@@ -300,7 +298,7 @@ jobs:
           rm -r "$AGENT_TOOLSDIRECTORY" || :
         shell: bash
       - name: Force SLUG to lowercase
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           github-token: n/a
           script: |
@@ -335,9 +333,9 @@ jobs:
           fi
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build and push ${{ env.DISTRO }}:${{ env.TAG }}
         shell: buildah unshare pwsh "{0}"

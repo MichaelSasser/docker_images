@@ -1,56 +1,47 @@
+[![Scheduled build (Ubuntu)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-ubuntu.yml/badge.svg?event=schedule)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-ubuntu.yml)
+[![On-demand build (Ubuntu)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-ubuntu.yml/badge.svg?event=workflow_dispatch)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-ubuntu.yml)
+[![Linter](https://github.com/MichaelSasser/docker_images/actions/workflows/lint.yml/badge.svg)](https://github.com/MichaelSasser/docker_images/actions/workflows/lint.yml)
+
 # Docker images
 
-[![Scheduled build (Ubuntu)](https://github.com/catthehacker/docker_images/actions/workflows/build-ubuntu.yml/badge.svg?event=schedule)](https://github.com/catthehacker/docker_images/actions/workflows/build-ubuntu.yml)
-[![On-demand build (Ubuntu)](https://github.com/catthehacker/docker_images/actions/workflows/build-ubuntu.yml/badge.svg?event=workflow_dispatch)](https://github.com/catthehacker/docker_images/actions/workflows/build-ubuntu.yml)
-[![Linter](https://github.com/catthehacker/docker_images/actions/workflows/lint.yml/badge.svg)](https://github.com/catthehacker/docker_images/actions/workflows/lint.yml)
+The images created by this repository are intended to be used with [act](https://github.com/nektos/act), to Run your GitHub Actions "locally".
 
-## When updates will be applied to images
+> [!IMPORTANT]
+> This is a hard fork of [catthehacker/docker_images](https://github.com/catthehacker/docker_images) which at the time of forking seemed to be abandoned. This fork is not intended to be a (drop-in) replacement but rather a (temporary?) continuation of the original project with changes. Instead of having multiple image variants for different use cases, this fork will only have a single variant for now, with a default set of tools and packages that are useful for me and my workflows on my Forgejo instance.
 
-- A package that will be required for action(s) to work properly might be added/removed/changed
-- Any maintenance that will be required due to:
-  - GitHub Container Registry
-  - GitHub Actions
-  - Act
-- Performance and/or disk space improvements
+## The Default Images
 
-## Images available
+At present, this is the only image available. It is based on the Custom, Rust and JavaScript image from the original project with some modifications. Many of the available JavaScript tools have been removed and some Python tools have been added. The latest image is now based on Ubuntu 24.04 with Node 20 as the default.
 
-- [ChristopherHX/runner-image-blobs](https://github.com/ChristopherHX/runner-image-blobs) GitHub Actions Hosted runner image copy containing almost all possible tools (image is extremely big, 20GB compressed, ~60GB extracted)
-  - A tar backup of the GitHub Hosted Runners are uploaded once a week via a custom docker image upload script in runner-image-blobs repository
-  - Synced by cron job `.github/workflows/copy-full-image.yml` to the following tags
-  - You can verify if the Image is still updated regulary by inspecting the dates in `docker buildx imagetools inspect catthehacker/ubuntu:full-latest --format "{{ json . }}"`
-    - The friendly tag name version in the output can be looked up here https://github.com/actions/runner-images/releases to find out more about the sources
-  - available tags are
-    - `ghcr.io/catthehacker/ubuntu:full-latest` (aka `full-22.04`)
-    - `ghcr.io/catthehacker/ubuntu:full-24.04` (beta image)
-    - `ghcr.io/catthehacker/ubuntu:full-22.04`
-    - `ghcr.io/catthehacker/ubuntu:full-20.04` (Updated as long ubuntu-20.04 free public GitHub Hosted Runners are available)
+### Images
 
-- [`/linux/ubuntu/act`](./linux/ubuntu/scripts/act.sh) - image used in [github.com/nektos/act][nektos/act] as medium size image retaining compatibility with most actions while maintaining small size
-  - `ghcr.io/catthehacker/ubuntu:act-20.04`
-  - `ghcr.io/catthehacker/ubuntu:act-22.04`
-  - `ghcr.io/catthehacker/ubuntu:act-latest`
-- [`/linux/ubuntu/runner`](./linux/ubuntu/scripts/runner.sh) - `ghcr.io/catthehacker/ubuntu:act-*` but with `runner` as user instead of `root`
-  - `ghcr.io/catthehacker/ubuntu:runner-20.04`
-  - `ghcr.io/catthehacker/ubuntu:runner-22.04`
-  - `ghcr.io/catthehacker/ubuntu:runner-latest`
-- [`/linux/ubuntu/js`](./linux/ubuntu/scripts/js.sh) - `ghcr.io/catthehacker/ubuntu:act-*` but with `js` tools installed (`yarn`, `nvm`, `node` v16/v18, `pnpm`, `grunt`, etc.)
-  - `ghcr.io/catthehacker/ubuntu:js-20.04`
-  - `ghcr.io/catthehacker/ubuntu:js-22.04`
-  - `ghcr.io/catthehacker/ubuntu:js-latest`
-- [`/linux/ubuntu/rust`](./linux/ubuntu/scripts/rust.sh) - `ghcr.io/catthehacker/ubuntu:act-*` but with `rust` tools installed (`rustfmt`, `clippy`, `cbindgen`, etc.)
-  - `ghcr.io/catthehacker/ubuntu:rust-20.04`
-  - `ghcr.io/catthehacker/ubuntu:rust-22.04`
-  - `ghcr.io/catthehacker/ubuntu:rust-latest`
-- [`/linux/ubuntu/pwsh`](./linux/ubuntu/scripts/pwsh.sh) - `ghcr.io/catthehacker/ubuntu:act-*` but with `pwsh` tools and modules installed
-  - `ghcr.io/catthehacker/ubuntu:pwsh-20.04`
-  - `ghcr.io/catthehacker/ubuntu:pwsh-22.04`
-  - `ghcr.io/catthehacker/ubuntu:pwsh-latest`
+- [default-24.04](ghcr.io/MichaelSasser/ubuntu:default-24.04), [default-latest](ghcr.io/MichaelSasser/ubuntu:default-latest)
+- [default-22.04](ghcr.io/MichaelSasser/ubuntu:default-22.04)
 
-## [`ubuntu-18.04` has been deprecated and images for that environment will not be updated anymore](https://github.com/actions/runner-images/issues/6002)
+### Software
 
-## Repository contains parts of [`actions/virtual-environments`][actions/virtual-environments] which is licenced under ["MIT License"](https://github.com/actions/virtual-environments/blob/main/LICENSE)
+- **Python**: with the system's Python version, `pip`, `uv` with Python version 3.10, 3.11, 3.12, 3.13 and 13.13t, `pipx`, `poetry` and `tox`
+- **Rust**: `rustfmt`, `clippy`, `cbindgen`, `cargo-binstall`, `cargo-audit`, `cargo-outdated`
+- **JavaScript**: `nvm` with `node` LTS versions 16, 18, 20 (default), 22 and `npm`, `pnpm` and `yarn`
+- **GO**: `go`
+- Additional Tools:
+  - Ansible
+  - YamlLint
+  - git-cliff
+  - pre-commit
+  - gh
+  - jq
+  - yq
 
-[nektos/act]: https://github.com/nektos/act
+## License
+
+Copyright &copy; 2024 Michael Sasser <Info@MichaelSasser.org> \
+Copyright &copy; 2021 catthehacker
+
+Released under the [MIT license](./LICENSE).
+
+### Attribution
+
+This repository contains parts of [`actions/virtual-environments`][actions/virtual-environments] which is also licensed under [MIT License](https://github.com/actions/virtual-environments/blob/main/LICENSE).
+
 [actions/virtual-environments]: https://github.com/actions/virtual-environments
-[catthehacker/virtual-environments-fork]: https://github.com/catthehacker/virtual-environments-fork/tree/master/images/linux

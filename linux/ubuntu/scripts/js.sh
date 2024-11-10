@@ -20,7 +20,7 @@ echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm' | tee 
 printf "\n\t🐋 Installed NVM 🐋\t\n"
 nvm --version
 
-# node 16, 18 and 20 are already installed in act-*
+# node 18 and 20 are already installed in act-*
 versions=("22")
 JSON=$(wget -qO- https://nodejs.org/download/release/index.json | jq --compact-output)
 
@@ -59,17 +59,17 @@ printf "\n\t🐋 Installing JS tools 🐋\t\n"
 npm install -g npm
 npm install -g pnpm
 npm install -g yarn
-npm install -g grunt
-npm install -g gulp
-npm install -g n
-npm install -g parcel-bundler
+# npm install -g grunt
+# npm install -g gulp
+# npm install -g n
+# npm install -g parcel-bundler
 npm install -g typescript
-npm install -g newman
+# npm install -g newman
 # npm install -g vercel
-npm install -g webpack
-npm install -g webpack-cli
-npm install -g lerna
-# npm install -g --unsafe-perm netlify-cli
+# npm install -g webpack
+# npm install -g webpack-cli
+# npm install -g lerna
+# npm install -g --unsafe-perm netlify-cli  # ISSUE: Doesn't work with npm 20 and 22 due to outdated sharp dependency
 
 printf "\n\t🐋 Installed NPM 🐋\t\n"
 npm -v
