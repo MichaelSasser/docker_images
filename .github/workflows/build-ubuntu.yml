@@ -85,7 +85,7 @@ jobs:
 
       - name: Login to GitHub Container Registry
         if: env.PUSH_GHCR
-        run: exec buildah login -u ${{ github.actor }} -p ${{ github.token }} ghcr.io
+        run: exec buildah login -u ${{ github.repository_owner }} -p ${{ secrets.GH_TOKEN }} ghcr.io
 
       - name: Login to Quay
         if: env.PUSH_QUAY
@@ -306,7 +306,7 @@ jobs:
 
       - name: Login to GitHub Container Registry
         if: env.PUSH_GHCR
-        run: exec buildah login -u ${{ github.actor }} -p ${{ github.token }} ghcr.io
+        run: exec buildah login -u ${{ github.repository_owner }} -p ${{ secrets.GH_TOKEN }} ghcr.io
 
       - name: Login to Quay
         if: env.PUSH_QUAY
