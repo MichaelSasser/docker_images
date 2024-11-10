@@ -21,6 +21,8 @@ env:
   IMAGE_LABEL_OWNER: ${{ github.repository_owner }}
   IMAGE_LABEL_REPO: ${{ github.repository }}
   SLUG: ${{ github.repository_owner }}/ubuntu
+  SLUG_QUAY: ${{ vars.USERNAME_QUAY }}/ubuntu
+  SLUG_DOCKER: ${{ vars.USERNAME_DOCKER }}/ubuntu
   DISTRO: ubuntu
   NODE: '16 18 20'
   BUILD_REF: ${{ github.sha }}
@@ -147,10 +149,10 @@ jobs:
               $tags += "ghcr.io/${env:SLUG}:$tagName"
             }
             if($env:PUSH_QUAY) {
-              $tags += "quay.io/${env:SLUG}:$tagName"
+              $tags += "quay.io/${env:SLUG_QUAY}:$tagName"
             }
             if($env:PUSH_DOCKER_HUB) {
-              $tags += "docker.io/${env:SLUG}:$tagName"
+              $tags += "docker.io/${env:SLUG_DOCKER}:$tagName"
             }
           }
 
@@ -191,10 +193,10 @@ jobs:
               $tags += "ghcr.io/${env:SLUG}:$tagName"
             }
             if($env:PUSH_QUAY) {
-              $tags += "quay.io/${env:SLUG}:$tagName"
+              $tags += "quay.io/${env:SLUG_QUAY}:$tagName"
             }
             if($env:PUSH_DOCKER_HUB) {
-              $tags += "docker.io/${env:SLUG}:$tagName"
+              $tags += "docker.io/${env:SLUG_DOCKER}:$tagName"
             }
           }
 
@@ -365,10 +367,10 @@ jobs:
               $tags += "ghcr.io/${env:SLUG}:$tagName"
             }
             if($env:PUSH_QUAY) {
-              $tags += "quay.io/${env:SLUG}:$tagName"
+              $tags += "quay.io/${env:SLUG_QUAY}:$tagName"
             }
             if($env:PUSH_DOCKER_HUB) {
-              $tags += "docker.io/${env:SLUG}:$tagName"
+              $tags += "docker.io/${env:SLUG_DOCKER}:$tagName"
             }
           }
 
