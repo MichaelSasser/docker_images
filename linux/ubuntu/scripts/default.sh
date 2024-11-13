@@ -59,6 +59,14 @@ for SCRIPT in "${scripts[@]}"; do
   "/imagegeneration/installers/${SCRIPT}.sh"
 done
 
+. /etc/environment
+
+printf "\n\t🐋 Installing typst-cli 🐋\t\n"
+cargo binstall -y typst-cli
+
+printf "\n\t🐋 Installing cmake 🐋\t\n"
+apt-get install -y cmake
+
 printf "\n\t🐋 Installing Ansible 🐋\t\n"
 apt-get install -y software-properties-common
 add-apt-repository --yes --update ppa:ansible/ansible

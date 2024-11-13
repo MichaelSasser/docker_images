@@ -25,7 +25,7 @@ printf "\n\t🐋 Installing cargo-binstall 🐋\t\n"
 # Pinned to commit-hash for latest release v1.10.12 to prevent accidental problems
 curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/dae59123ebcd0833a1b28f1af21ab08352d3965b/install-from-binstall-release.sh | bash
 
-cargo binstall -y bindgen-cli cbindgen cargo-audit cargo-outdated cargo-hack
+cargo binstall -y bindgen-cli cbindgen cargo-audit cargo-outdated cargo-hack cargo-semver-checks
 
 chmod -R 777 "$(dirname "${RUSTUP_HOME}")"
 
