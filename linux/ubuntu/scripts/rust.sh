@@ -20,6 +20,8 @@ source "${CARGO_HOME}/env"
 
 rustup toolchain install nightly beta
 rustup component add rustfmt clippy
+rustup component add --toolchain nightly-x86_64-unknown-linux-gnu rustfmt clippy
+rustup component add --toolchain beta-x86_64-unknown-linux-gnu rustfmt clippy
 
 printf "\n\t🐋 Installing cargo-binstall 🐋\t\n"
 # Pinned to commit-hash for latest release v1.10.12 to prevent accidental problems
