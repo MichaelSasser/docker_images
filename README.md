@@ -28,7 +28,7 @@ At present, this is the only image available. It is based on the Custom, Rust an
 ### Software
 
 - **Python**: with the system's Python version, `pip`, `uv` with Python version 3.10, 3.11, 3.12, 3.13 and 13.13t, `pipx`, `poetry` and `tox`
-- **Rust**: `rustup` with the toolchains stable, beta and nightly installed, `rustfmt`, `clippy`, `cbindgen`, `cargo-binstall`, `cargo-audit`, `cargo-outdated`, `cargo-hack`, `cargo-semver-checks`
+- **Rust**: `rustup` with the toolchains stable, beta and nightly installed, `rustfmt`, `clippy`, `cbindgen`, `cargo-binstall`, `cargo-audit`, `cargo-outdated`, `cargo-hack`, `cargo-semver-checks`, `rustc-codegen-cranelift-preview`
 - **JavaScript**: `nvm` with `node` LTS versions 16, 18, 20 (default), 22 and `npm`, `pnpm` and `yarn`
 - **GO**: `go`
 - Additional Tools:
@@ -40,6 +40,7 @@ At present, this is the only image available. It is based on the Custom, Rust an
   - jq
   - yq
   - cmake
+  - mold
   - typst-cli
 
 ## License

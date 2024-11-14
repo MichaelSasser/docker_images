@@ -20,7 +20,7 @@ source "${CARGO_HOME}/env"
 
 rustup toolchain install nightly beta
 rustup component add --toolchain stable rustfmt clippy # Shouldn't be needed
-rustup component add --toolchain nightly rustfmt clippy
+rustup component add --toolchain nightly rustfmt clippy rustc-codegen-cranelift-preview
 rustup component add --toolchain beta rustfmt clippy
 
 printf "\n\t🐋 Installing cargo-binstall 🐋\t\n"
@@ -52,6 +52,25 @@ cargo -V
 
 printf "\n\t🐋 Installed RUSTC 🐋\t\n"
 rustc -V
+
+printf "\n\t🐋 Installing mold 🐋\t\n"
+git clone --branch stable https://github.com/rui314/mold.git
+cd mold
+
+MOLD_HASH="$(git rev-list --tags --max-count=1)"
+MOLD_VERSION="$(git describe --tags "$MOLD_HASH")"
+printf "Installing mold version: %s\n" "$MOLD_VERSION"
+
+git checkout "$MOLD_HASH"
+
+mkdir -p build
+cd build
+
+../install-build-deps.sh
+
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=c++ -DCMAKE_INSTALL_PREFIX=/usr -B build ..
+cmake --build build -j$(nproc)
+sudo cmake --build build --target install
 
 printf "\n\t🐋 Cleaning image 🐋\t\n"
 apt-get clean
