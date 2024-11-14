@@ -72,6 +72,9 @@ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=c++ -DCMAKE_INSTALL_PREFIX
 cmake --build build -j$(nproc)
 sudo cmake --build build --target install
 
+# cleanup
+rm -rf /root/mold
+
 printf "\n\t🐋 Cleaning image 🐋\t\n"
 apt-get clean
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'

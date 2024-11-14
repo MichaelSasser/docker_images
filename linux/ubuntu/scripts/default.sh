@@ -100,6 +100,7 @@ uv tool update-shell
 uv tool install --python-preference=managed poetry git-cliff pre-commit tox
 
 printf "\n\t🐋 Cleaning image 🐋\t\n"
+rm -rf "${CARGO_HOME}/registry/*"
 apt-get clean
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
 printf "\n\t🐋 Cleaned up image 🐋\t\n"
