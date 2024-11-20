@@ -61,6 +61,46 @@ done
 
 . /etc/environment
 
+printf "\n\t🐋 Installing tea 🐋\t\n"
+
+git clone https://gitea.com/gitea/tea.git
+cd tea
+
+TEA_HASH="$(git rev-list --tags --max-count=1)"
+TEA_VERSION="$(git describe --tags "$TEA_HASH")"
+printf "Installing Gitea tea version: %s\n" "$TEA_VERSION"
+
+git checkout "$TEA_HASH"
+
+go mod vendor
+make
+make install
+
+# cleanup
+cd ..
+rm -rf tea
+
+printf "\n\t🐋 Installing hub 🐋\t\n"
+
+apt-get install groff bsdextrautils
+
+git clone \
+  --config transfer.fsckobjects=false \
+  --config receive.fsckobjects=false \
+  --config fetch.fsckobjects=false \
+  https://github.com/github/hub.git
+
+HUB_HASH="$(git rev-list --tags --max-count=1)"
+HUB_VERSION="$(git describe --tags "$HUB_HASH")"
+printf "Installing Github Hub version: %s\n" "$HUB_VERSION"
+
+git checkout "$TEA_HASH"
+
+cd hub
+make install prefix=/usr/local
+cd ..
+rm -rf hub
+
 printf "\n\t🐋 Installing typst-cli 🐋\t\n"
 cargo binstall -y typst-cli
 
@@ -68,9 +108,9 @@ printf "\n\t🐋 Installing cmake 🐋\t\n"
 apt-get install -y cmake
 
 printf "\n\t🐋 Installing Ansible 🐋\t\n"
-apt-get install -y software-properties-common
+apt-get install software-properties-common
 add-apt-repository --yes --update ppa:ansible/ansible
-apt-get install -y \
+apt-get install \
   ansible \
   python3-openssl \
   python3-socks \

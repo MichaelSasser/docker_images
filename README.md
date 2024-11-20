@@ -42,6 +42,8 @@ At present, this is the only image available. It is based on the Custom, Rust an
   - cmake
   - mold
   - typst-cli
+  - hub
+  - tea
 
 ## License
 
