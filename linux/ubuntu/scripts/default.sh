@@ -80,26 +80,30 @@ make install
 cd ..
 rm -rf tea
 
-printf "\n\t🐋 Installing hub 🐋\t\n"
-
-apt-get install groff bsdextrautils
-
-git clone \
-  --config transfer.fsckobjects=false \
-  --config receive.fsckobjects=false \
-  --config fetch.fsckobjects=false \
-  https://github.com/github/hub.git
-
-HUB_HASH="$(git rev-list --tags --max-count=1)"
-HUB_VERSION="$(git describe --tags "$HUB_HASH")"
-printf "Installing Github Hub version: %s\n" "$HUB_VERSION"
-
-git checkout "$TEA_HASH"
-
-cd hub
-make install prefix=/usr/local
-cd ..
-rm -rf hub
+# printf "\n\t🐋 Installing hub 🐋\t\n"
+#
+# apt-get install groff bsdextrautils
+#
+# git clone \
+#   --config transfer.fsckobjects=false \
+#   --config receive.fsckobjects=false \
+#   --config fetch.fsckobjects=false \
+#   https://github.com/github/hub.git
+#
+# HUB_HASH="$(git rev-list --tags --max-count=1)"
+# HUB_VERSION="$(git describe --tags "$HUB_HASH")"
+# printf "Installing Github Hub version: %s\n" "$HUB_VERSION"
+#
+# git checkout "$HUB_HASH"
+#
+# cd hub
+# make install prefix=/usr/local
+#
+# cd ..
+# rm -rf hub
+# apt-get uninstall groff bsdextrautils
+# apt-get autoremove
+# apt-get autoclean
 
 printf "\n\t🐋 Installing typst-cli 🐋\t\n"
 cargo binstall -y typst-cli
@@ -135,7 +139,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 PATH="$UV_INSTALL_DIR:$PATH"
 
-uv python install 3.10 3.11 3.12 3.13 3.13t
+uv python install 3.11 3.12 3.13 3.13t
 uv tool update-shell
 uv tool install --python-preference=managed poetry git-cliff pre-commit tox
 
