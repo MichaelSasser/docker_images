@@ -105,6 +105,9 @@ rm -rf tea
 # apt-get autoremove
 # apt-get autoclean
 
+printf "\n\t🐋 Installing taplo-cli 🐋\t\n"
+cargo binstall -y taplo-cli
+
 printf "\n\t🐋 Installing typst-cli 🐋\t\n"
 cargo binstall -y typst-cli
 

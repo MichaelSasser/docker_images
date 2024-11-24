@@ -4,14 +4,26 @@
 
 # Docker images
 
-The images created by this repository are intended to be used with [act](https://github.com/nektos/act), to Run your GitHub Actions "locally".
+The images created by this repository are intended to be used with
+[act](https://github.com/nektos/act), to Run your GitHub Actions "locally".
 
 > [!IMPORTANT]
-> This is a hard fork of [catthehacker/docker_images](https://github.com/catthehacker/docker_images) which at the time of forking seemed to be abandoned. This fork is not intended to be a (drop-in) replacement but rather a (temporary?) continuation of the original project with changes. Instead of having multiple image variants for different use cases, this fork will only have a single variant for now, with a default set of tools and packages that are useful to me and my workflows on my Forgejo instance.
+> This is a hard fork of
+> [catthehacker/docker_images](https://github.com/catthehacker/docker_images)
+> which at the time of forking seemed to be abandoned. This fork is not
+> intended to be a (drop-in) replacement but rather a (temporary?)
+> continuation of the original project with changes. Instead of having
+> multiple image variants for different use cases, this fork will only have
+> a single variant for now, with a default set of tools and packages that
+> are useful to me and my workflows on my Forgejo instance.
 
 ## The Default Images
 
-At present, this is the only image available. It is based on the Custom, Rust and JavaScript image from the original project with some modifications. Many of the available JavaScript tools have been removed and some Python tools have been added. The latest image is now based on Ubuntu 24.04 with Node 20 as the default.
+At present, this is the only image available. It is based on the Custom,
+Rust and JavaScript image from the original project with some modifications.
+Many of the available JavaScript tools have been removed and some Python
+tools have been added. The latest image is now based on Ubuntu 24.04
+with Node 20 as the default.
 
 ### Images
 
@@ -43,6 +55,7 @@ At present, this is the only image available. It is based on the Custom, Rust an
   - mold
   - typst-cli
   - tea
+  - taplo
 
 ## License
 
@@ -53,6 +66,9 @@ Released under the [MIT license](./LICENSE).
 
 ### Attribution
 
-This repository contains parts of [`actions/virtual-environments`][actions/virtual-environments] which is also licensed under [MIT License](https://github.com/actions/virtual-environments/blob/main/LICENSE).
+This repository contains parts of
+[`actions/virtual-environments`][actions/virtual-environments] which is also
+licensed under
+[MIT License](https://github.com/actions/virtual-environments/blob/main/LICENSE).
 
 [actions/virtual-environments]: https://github.com/actions/virtual-environments
