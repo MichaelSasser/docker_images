@@ -84,6 +84,10 @@ jobs:
           script: |
             core.exportVariable('SLUG', process.env.SLUG.toLowerCase());
 
+      # ISSUE: https://github.com/actions/runner-images/issues/10443
+      - name: 'Workaround: Disable kernel.apparmor_restrict_unprivileged_userns'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - name: Login to GitHub Container Registry
         if: env.PUSH_GHCR
         run: exec buildah login -u ${{ github.actor }} -p ${{ github.token }} ghcr.io
@@ -303,6 +307,10 @@ jobs:
           github-token: n/a
           script: |
             core.exportVariable('SLUG', process.env.SLUG.toLowerCase());
+
+      # ISSUE: https://github.com/actions/runner-images/issues/10443
+      - name: 'Workaround: Disable kernel.apparmor_restrict_unprivileged_userns'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Login to GitHub Container Registry
         if: env.PUSH_GHCR
