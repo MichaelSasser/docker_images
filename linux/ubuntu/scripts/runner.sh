@@ -4,27 +4,29 @@
 set -Eeuxo pipefail
 
 printf "\n\t🐋 Creating runner users 🐋\t\n"
+RUNNERADMIN="${RUNNER}admin"
+
 groupadd -g 1001 "${RUNNER}"
-groupadd -g 1000 "${RUNNER}admin"
+groupadd -g 1000 "${RUNNERADMIN}" || RUNNERADMIN="$(id -gn 1000)"
 useradd -u 1001 -g "${RUNNER}" -G sudo -m -s /bin/bash "${RUNNER}"
-useradd -u 1000 -g "${RUNNER}admin" -G sudo -m -s /bin/bash "${RUNNER}admin"
-usermod -aG docker "runner"
-usermod -aG docker "runneradmin"
+useradd -u 1000 -g "${RUNNERADMIN}" -G sudo -m -s /bin/bash "${RUNNERADMIN}" || true
+usermod -aG docker "${RUNNER}"
+usermod -aG docker "${RUNNERADMIN}"
 {
   echo "${RUNNER} ALL=(ALL) NOPASSWD: ALL"
-  echo "${RUNNER}admin ALL=(ALL) NOPASSWD: ALL"
+  echo "${RUNNERADMIN}ALL=(ALL) NOPASSWD: ALL"
 } | tee -a /etc/sudoers
 printf "\n\t🐋 Runner user 🐋\t\n"
 su - "${RUNNER}" -c id
 
 printf "\n\t🐋 Runner admin 🐋\t\n"
-su - "${RUNNER}admin" -c id
+su - "${RUNNERADMIN}" -c id
 
 printf "\n\t🐋 Created non-root user 🐋\t\n"
 grep "${RUNNER}" /etc/passwd
 
 printf "\n\t🐋 Created non-root admin 🐋\t\n"
-grep "${RUNNER}admin" /etc/passwd
+grep "${RUNNERADMIN}" /etc/passwd
 
 sed -i /etc/environment -e "s/USER=root/USER=${RUNNER}/g"
 
@@ -45,6 +47,6 @@ chown -R "${RUNNER}":"${RUNNER}" "/home/${RUNNER}/.ssh"
 
 # Word is of the form "A"B"C" (B indicated). Did you mean "ABC" or "A\"B\"C"?shellcheck(SC2140)
 # shellcheck disable=SC2140
-chown -R "${RUNNER}":"${RUNNER}admin" "$AGENT_TOOLSDIRECTORY"
+chown -R "${RUNNER}":"${RUNNERADMIN}" "$AGENT_TOOLSDIRECTORY"
 
 printf "\n\t🐋 Finished building 🐋\t\n"
