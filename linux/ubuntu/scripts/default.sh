@@ -122,7 +122,8 @@ apt-get install \
   python3-openssl \
   python3-socks \
   python3-docker \
-  python3-dockerpty
+  python3-dockerpty \
+  python3-ansible-runner
 
 printf "\n\t🐋 Installing Yamllint 🐋\t\n"
 apt-get install -y yamllint

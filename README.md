@@ -45,6 +45,7 @@ with Node 20 as the default.
 - **GO**: `go`
 - Additional Tools:
   - Ansible
+  - ansible-runner
   - YamlLint
   - git-cliff
   - pre-commit
