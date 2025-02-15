@@ -125,9 +125,12 @@ apt-get install \
   python3-dockerpty \
   python3-ansible-runner
 
+printf "\n\t🐋 Ensure break-system-packages is set for system Python 🐋\t\n"
+python3 -m pip config set --global global.break-system-packages true
+
 printf "\n\t🐋 Installing Yamllint 🐋\t\n"
-apt-get install -y yamllint
-pip3 install --no-cache-dir ansible-lint
+pip3 install --no-cache-dir --ignore-installed PyYAML
+pip3 install --no-cache-dir --ignore-installed ansible-lint yamllint # --ignore-installed is pobably not needed here
 
 printf "\n\t🐋 Installing Astral UV 🐋\t\n"
 cat >>/etc/environment <<EOF
