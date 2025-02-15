@@ -30,12 +30,12 @@ with Node 20 as the default.
 #### Stable
 
 - [default-24.04](ghcr.io/MichaelSasser/ubuntu:default-24.04), [default-latest](ghcr.io/MichaelSasser/ubuntu:default-latest)
-- [default-22.04](ghcr.io/MichaelSasser/ubuntu:default-22.04)
+- [default-22.04](ghcr.io/MichaelSasser/ubuntu:default-22.04) (Deprecated)
 
 #### Development
 
 - [default-24.04-dev](ghcr.io/MichaelSasser/ubuntu:default-24.04-dev), [default-latest-dev](ghcr.io/MichaelSasser/ubuntu:default-latest-dev)
-- [default-22.04-dev](ghcr.io/MichaelSasser/ubuntu:default-22.04-dev)
+- [default-22.04-dev](ghcr.io/MichaelSasser/ubuntu:default-22.04-dev) (Deprecated)
 
 ### Software
 
