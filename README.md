@@ -46,6 +46,8 @@ with Node 20 as the default.
 - Additional Tools:
   - Ansible
   - ansible-runner
+  - ansible-navigator
+  - ansible-builder
   - YamlLint
   - git-cliff
   - pre-commit

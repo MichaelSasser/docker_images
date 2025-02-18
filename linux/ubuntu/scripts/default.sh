@@ -130,7 +130,16 @@ python3 -m pip config set --global global.break-system-packages true
 
 printf "\n\t🐋 Installing Yamllint 🐋\t\n"
 pip3 install --no-cache-dir --ignore-installed PyYAML
-pip3 install --no-cache-dir --ignore-installed ansible-lint yamllint # --ignore-installed is pobably not needed here
+
+# Builder should be already installed with ansible-navigator
+pip3 install --no-cache-dir --ignore-installed \
+  ansible-lint \
+  ansible-navigator \
+  ansible-builder \
+  yamllint
+
+ansible-navigator --version
+ansible-builder --version
 
 printf "\n\t🐋 Installing Astral UV 🐋\t\n"
 cat >>/etc/environment <<EOF
