@@ -5,7 +5,10 @@ set -Eeuo pipefail
 
 . /etc/environment
 
-printf "\n\t🐋 Installing NVM tools 🐋\t\n"
+#
+# Installing NVM Tools
+#
+echo '::group::Installing NVM Tools'
 VERSION=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')
 curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/$VERSION/install.sh" | bash
 export NVM_DIR=$HOME/.nvm
@@ -71,18 +74,21 @@ npm install -g typescript
 # npm install -g lerna
 # npm install -g --unsafe-perm netlify-cli  # ISSUE: Doesn't work with npm 20 and 22 due to outdated sharp dependency
 
-printf "\n\t🐋 Installed NPM 🐋\t\n"
+echo '::group::Version NPM'
 npm -v
+echo '::endgroup::'
 
-printf "\n\t🐋 Installed PNPM 🐋\t\n"
+echo '::group::Version PNPM'
 pnpm -v
+echo '::endgroup::'
 
-printf "\n\t🐋 Installed YARN 🐋\t\n"
+echo '::group::Version YARN'
 yarn -v
+echo '::endgroup::'
 
-printf "\n\t🐋 Cleaning image 🐋\t\n"
+echo '::group::Cleaning Up Image'
 apt-get clean
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
 # remove npm config
 npm config edit --editor rm
-printf "\n\t🐋 Cleaned up image 🐋\t\n"
+echo '::endgroup::'

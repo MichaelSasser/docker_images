@@ -5,23 +5,25 @@
 
 set -Eeuxo pipefail
 
-printf "\n\t🐋 Installing Go(lang) 🐋\t\n"
-
-wget -qO- "$(jq -r '.toolcache[] | select(.name == "go") | .url' "/imagegeneration/toolset.json")" > "/tmp/go-toolset.json"
+#
+# Installing Go
+#
+echo '::group::Installing Go'
+wget -qO- "$(jq -r '.toolcache[] | select(.name == "go") | .url' "/imagegeneration/toolset.json")" >"/tmp/go-toolset.json"
 
 go_arch() {
   case "$(uname -m)" in
-    'x86_64') echo 'amd64' ;;
-    'aarch64') echo 'arm64' ;;
+  'x86_64') echo 'amd64' ;;
+  'aarch64') echo 'arm64' ;;
   esac
 }
 
 toolcache_arch() {
   case "$(uname -m)" in
-    'aarch64') echo 'arm64' ;;
-    'x86_64') echo 'x64' ;;
-    'armv7l') echo 'armv7l' ;;
-    *) exit 1 ;;
+  'aarch64') echo 'arm64' ;;
+  'x86_64') echo 'x64' ;;
+  'armv7l') echo 'armv7l' ;;
+  *) exit 1 ;;
   esac
 }
 
@@ -56,8 +58,12 @@ for V in $(jq -r '.toolcache[] | select(.name == "go") | .versions[]' "/imagegen
 done
 
 sed "s|PATH=|PATH=$HOME/go/bin:|g" -i /etc/environment
+echo '::endgroup::'
 
-printf "\n\t🐋 Cleaning image 🐋\t\n"
+#
+# Cleaning Up Image
+#
+echo '::group::Cleaning Up Image'
 apt-get clean
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
-printf "\n\t🐋 Cleaned up image 🐋\t\n"
+echo '::endgroup::'

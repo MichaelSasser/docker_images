@@ -3,8 +3,10 @@
 
 set -Eeuxo pipefail
 
-printf "\n\t🐋 Build started 🐋\t\n"
-
+#
+# Installing ACT
+#
+echo '::group::Installing ACT'
 # Remove '"' so it can be sourced by sh/bash
 sed 's|"||g' -i "/etc/environment"
 
@@ -42,7 +44,6 @@ chown -R 1001:1000 "${ACT_TOOLSDIRECTORY}"
 mkdir -m 0777 -p /github
 chown -R 1001:1000 /github
 
-printf "\n\t🐋 Installing packages 🐋\t\n"
 packages=(
   ssh
   gawk
@@ -64,11 +65,20 @@ packages=(
   pipx
 )
 
+#
+# Installing Packages
+#
+echo "::group::Installing packages"
 apt-get -yq update
 apt-get -yq install --no-install-recommends --no-install-suggests "${packages[@]}"
+echo "::endgroup::"
 
 ln -s "$(which python3)" "/usr/local/bin/python"
 
+#
+# installing Git
+#
+echo "::group::Installing Git"
 add-apt-repository ppa:git-core/ppa -y
 apt-get update
 apt-get install -y git
@@ -76,34 +86,51 @@ apt-get install -y git
 git --version
 
 git config --system --add safe.directory '*'
+echo "::endgroup::"
 
+#
+# Installing Git LFS
+#
+echo "::group::Installing Git LFS"
 wget https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh -qO- | bash
 apt-get update
 apt-get install -y git-lfs
+echo "::endgroup::"
 
 LSB_OS_VERSION="${VERSION_ID//\./}"
 echo "LSB_OS_VERSION=${LSB_OS_VERSION}" | tee -a "/etc/environment"
 
+echo '::group::Downloading Image Generation Scripts'
 wget -qO "/imagegeneration/toolset.json" "https://raw.githubusercontent.com/actions/virtual-environments/main/images/ubuntu/toolsets/toolset-${LSB_OS_VERSION}.json" || echo "File not available"
 wget -qO "/imagegeneration/LICENSE" "https://raw.githubusercontent.com/actions/virtual-environments/main/LICENSE"
+echo '::endgroup::'
 
+#
+# Installing jq for x86_64
+#
 if [ "$(uname -m)" = x86_64 ]; then
+  echo '::group::Installing jq for x86_64'
   wget -qO "/usr/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64"
   chmod +x "/usr/bin/jq"
+  echo '::endgroup::'
 fi
 
-printf "\n\t🐋 Updated apt lists and upgraded packages 🐋\t\n"
-
-printf "\n\t🐋 Creating ~/.ssh and adding 'github.com' 🐋\t\n"
+#
+# Creating SSH Known Hosts
+#
+echo '::group::Creating SSH Known Hosts'
+echo 'Creating ~/.ssh and adding "github.com" and "ssh.dev.azure.com"'
 mkdir -m 0700 -p ~/.ssh
 {
   ssh-keyscan github.com
   ssh-keyscan ssh.dev.azure.com
 } >>/etc/ssh/ssh_known_hosts
+echo '::endgroup::'
 
-printf "\n\t🐋 Installed base utils 🐋\t\n"
-
-printf "\n\t🐋 Installing docker cli 🐋\t\n"
+#
+# Installing docker, moby-cli, moby-buildx, moby-compose
+#
+echo '::group::Installing docker, moby-cli, moby-buildx, moby-compose'
 if [[ "${VERSION_ID}" == "18.04" ]]; then
   echo "deb https://packages.microsoft.com/ubuntu/${VERSION_ID}/multiarch/prod ${VERSION_CODENAME} main" | tee /etc/apt/sources.list.d/microsoft-prod.list
 else
@@ -116,11 +143,14 @@ rm microsoft.asc
 apt-get -yq update
 apt-get -yq install --no-install-recommends --no-install-suggests moby-cli moby-buildx moby-compose
 
-printf "\n\t🐋 Installed moby-cli 🐋\t\n"
 docker -v
-
-printf "\n\t🐋 Installed moby-buildx 🐋\t\n"
 docker buildx version
+echo '::endgroup::'
+
+#
+# Installing Node.JS and tools
+#
+echo '::group::Installing Node.JS and tools'
 IFS=' ' read -r -a NODE <<<"$NODE_VERSION"
 for ver in "${NODE[@]}"; do
   printf "\n\t🐋 Installing Node.JS=%s 🐋\t\n" "${ver}"
@@ -141,6 +171,7 @@ for ver in "${NODE[@]}"; do
   printf "\n\t🐋 Installed NPM 🐋\t\n"
   "${NODEPATH}"/bin/npm -v
 done
+echo '::endgroup::'
 
 case "$(uname -m)" in
 'aarch64')
@@ -161,13 +192,18 @@ case "$(uname -m)" in
 *) exit 1 ;;
 esac
 
+#
+# Running Imagegeneration Scripts
+#
 for SCRIPT in "${scripts[@]}"; do
-  printf "\n\t🧨 Executing %s.sh 🧨\t\n" "${SCRIPT}"
+  echo "::group::Executing Imagegeneration Script ${SCRIPT}.sh"
   "/imagegeneration/installers/${SCRIPT}.sh"
+  echo '::endgroup::'
 done
 
-printf "\n\t🐋 Cleaning image 🐋\t\n"
+echo "::group::Cleaning Up Image"
 apt-get clean
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
+echo '::endgroup::'
 
-printf "\n\t🐋 Cleaned up image 🐋\t\n"
+echo '::endgroup::'

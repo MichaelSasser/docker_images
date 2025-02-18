@@ -2,20 +2,21 @@
 
 #set -Eeuxo pipefail
 
-printf "\n\t🔧 Preparing apt 🔧\t\n"
-
+#
+# Preparing APT
+#
+echo '::group::Preparing APT'
 # Enable retry logic for apt up to 10 times
 echo 'APT::Acquire::Retries "10";' >/etc/apt/apt.conf.d/80-retries
-
 # Configure apt to always assume Y
 echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90assumeyes
-
 apt-get update
 apt-get install apt-utils
 
 # Install apt-fast using quick-install.sh
 # https://github.com/ilikenwf/apt-fast
 bash -c "$(curl -sL https://raw.githubusercontent.com/ilikenwf/apt-fast/master/quick-install.sh)"
+echo '::endgroup::'
 
 # echo 'session required pam_limits.so' >>/etc/pam.d/common-session
 # echo 'session required pam_limits.so' >>/etc/pam.d/common-session-noninteractive
@@ -54,15 +55,21 @@ case "$(uname -m)" in
 *) exit 1 ;;
 esac
 
+#
+# Running Scripts
+#
 for SCRIPT in "${scripts[@]}"; do
-  printf "\n\t🧨 Executing %s.sh 🧨\t\n" "${SCRIPT}"
+  echo "::group::Executing Script ${SCRIPT}.sh"
   "/imagegeneration/installers/${SCRIPT}.sh"
+  echo '::endgroup::'
 done
 
 . /etc/environment
 
-printf "\n\t🐋 Installing tea 🐋\t\n"
-
+#
+# Installing: tea
+#
+echo '::group::Installing tea'
 git clone https://gitea.com/gitea/tea.git
 cd tea
 
@@ -79,9 +86,12 @@ make install
 # cleanup
 cd ..
 rm -rf tea
+echo '::endgroup::'
 
-# printf "\n\t🐋 Installing hub 🐋\t\n"
-#
+# #
+# # Installing: Hub
+# #
+# echo '::group::Installing Hub'
 # apt-get install groff bsdextrautils
 #
 # git clone \
@@ -104,17 +114,33 @@ rm -rf tea
 # apt-get uninstall groff bsdextrautils
 # apt-get autoremove
 # apt-get autoclean
+# echo '::endgroup::'
 
-printf "\n\t🐋 Installing taplo-cli 🐋\t\n"
+#
+# Installing: taplo-cli
+#
+echo '::group::Installing taplo-cli'
 cargo binstall -y taplo-cli
+echo '::endgroup::'
 
-printf "\n\t🐋 Installing typst-cli 🐋\t\n"
+#
+# Installing: typst-cli
+#
+echo '::group::Installing: typst-cli'
 cargo binstall -y typst-cli
+echo '::endgroup::'
 
-printf "\n\t🐋 Installing cmake 🐋\t\n"
+#
+# Installing: cmake
+#
+echo '::group::Installing: cmake'
 apt-get install -y cmake
+echo '::endgroup::'
 
-printf "\n\t🐋 Installing Ansible 🐋\t\n"
+#
+# Installing: Ansible
+#
+echo "::group::Installing: Ansible"
 apt-get install software-properties-common
 add-apt-repository --yes --update ppa:ansible/ansible
 apt-get install \
@@ -125,10 +151,10 @@ apt-get install \
   python3-dockerpty \
   python3-ansible-runner
 
-printf "\n\t🐋 Ensure break-system-packages is set for system Python 🐋\t\n"
+echo 'Ensure break-system-packages is set for system Python'
 python3 -m pip config set --global global.break-system-packages true
 
-printf "\n\t🐋 Installing Yamllint 🐋\t\n"
+echo 'Installing Yamllint'
 pip3 install --no-cache-dir --ignore-installed --root-user-action=ignore PyYAML
 
 # Builder should be already installed with ansible-navigator
@@ -141,8 +167,12 @@ pip3 install --no-cache-dir --ignore-installed --root-user-action=ignore \
 
 ansible-navigator --version
 ansible-builder --version
+echo '::endgroup::'
 
-printf "\n\t🐋 Installing Astral UV 🐋\t\n"
+#
+# Installing: Astral UV
+#
+echo '::group::Installing: Astral UV'
 cat >>/etc/environment <<EOF
 UV_BREAK_SYSTEM_PACKAGES=true
 UV_NO_PROGRESS=true
@@ -159,9 +189,13 @@ PATH="$UV_INSTALL_DIR:$PATH"
 uv python install 3.11 3.12 3.13 3.13t
 uv tool update-shell
 uv tool install --python-preference=managed poetry git-cliff pre-commit tox
+echo '::endgroup::'
 
-printf "\n\t🐋 Cleaning image 🐋\t\n"
+#
+# Cleanup Image
+#
+echo '::group::Cleaning Up Image'
 rm -rf "${CARGO_HOME}/registry/*"
 apt-get clean
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
-printf "\n\t🐋 Cleaned up image 🐋\t\n"
+echo '::endgroup::'
