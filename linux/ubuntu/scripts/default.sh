@@ -129,10 +129,11 @@ printf "\n\t🐋 Ensure break-system-packages is set for system Python 🐋\t\n"
 python3 -m pip config set --global global.break-system-packages true
 
 printf "\n\t🐋 Installing Yamllint 🐋\t\n"
-pip3 install --no-cache-dir --ignore-installed PyYAML
+pip3 install --no-cache-dir --ignore-installed --root-user-action=ignore PyYAML
 
 # Builder should be already installed with ansible-navigator
-pip3 install --no-cache-dir --ignore-installed \
+pip3 install --no-cache-dir --ignore-installed --root-user-action=ignore \
+  toml \
   ansible-lint \
   ansible-navigator \
   ansible-builder \

@@ -39,7 +39,7 @@ with Node 20 as the default.
 
 ### Software
 
-- **Python**: with the system's Python version, `pip`, `uv` with Python version 3.11, 3.12, 3.13 and 13.13t, `pipx`, `poetry` and `tox`
+- **Python**: with the system's Python version, `pip`, `uv` with Python version 3.11, 3.12, 3.13 and 13.13t, `pipx`, `poetry` and `tox`, `toml`
 - **Rust**: `rustup` with the toolchains stable, beta and nightly installed, `rustfmt`, `clippy`, `cbindgen`, `cargo-binstall`, `cargo-audit`, `cargo-outdated`, `cargo-hack`, `cargo-semver-checks`, `rustc-codegen-cranelift-preview`, `cargo-llvm-cov`
 - **JavaScript**: `nvm` with `node` LTS versions 16, 18, 20 (default), 22 and `npm`, `pnpm` and `yarn`
 - **GO**: `go`
