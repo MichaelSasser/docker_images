@@ -149,7 +149,11 @@ apt-get install \
   python3-socks \
   python3-docker \
   python3-dockerpty \
-  python3-ansible-runner
+  python3-ansible-runner \
+  python-dev-is-python3 \
+  libxml2-dev \
+  libxslt1-dev \
+  libonig-dev
 
 echo 'Ensure break-system-packages is set for system Python'
 python3 -m pip config set --global global.break-system-packages true
@@ -167,6 +171,7 @@ pip3 install --no-cache-dir --ignore-installed --root-user-action=ignore \
 
 ansible-navigator --version
 ansible-builder --version
+yamllint --version
 echo '::endgroup::'
 
 #
