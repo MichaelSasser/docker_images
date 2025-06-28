@@ -124,16 +124,6 @@ wget -qO "/imagegeneration/LICENSE" "https://raw.githubusercontent.com/actions/v
 echo '::endgroup::'
 
 #
-# Installing jq for x86_64
-#
-if [ "$(uname -m)" = x86_64 ]; then
-  echo '::group::Installing jq for x86_64'
-  wget -qO "/usr/bin/jq" "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64"
-  chmod +x "/usr/bin/jq"
-  echo '::endgroup::'
-fi
-
-#
 # Creating SSH Known Hosts
 #
 echo '::group::Creating SSH Known Hosts'
