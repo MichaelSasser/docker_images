@@ -65,7 +65,7 @@ echo '::endgroup::'
 
 echo '::group::Installing Mold Linker'
 MOLD_URL="$(curl --proto '=https' --tlsv1.2 -sSf https://api.github.com/repos/rui314/mold/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"$(uname -m)\"))")"
-echio "Downloading Mold from: ${MOLD_URL}"
+echo "Downloading Mold from: ${MOLD_URL}"
 mkdir -p "mold"
 curl --proto '=https' --tlsv1.2 -sL "${MOLD_URL}" | tar xz --strip-components=1 -C "mold"
 
