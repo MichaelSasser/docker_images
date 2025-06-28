@@ -120,7 +120,12 @@ echo '::endgroup::'
 # Installing: taplo-cli
 #
 echo '::group::Installing taplo-cli'
-cargo binstall -y taplo-cli
+TAPLO_URL="$(curl --proto '=https' --tlsv1.2 -sSf https://api.github.com/repos/tamasfe/taplo/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"linux-$(uname -m)\"))")"
+echo "Downloading taplo from: ${TAPLO_URL}"
+curl --proto '=https' --tlsv1.2 -sL "${TAPLO_URL}" | gunzip >/usr/bin/taplo
+chmod 755 /usr/bin/taplo
+chown root:root /usr/bin/taplo
+echo taplo version: "$(/usr/bin/taplo --version)"
 echo '::endgroup::'
 
 #
