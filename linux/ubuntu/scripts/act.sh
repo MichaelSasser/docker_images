@@ -77,21 +77,22 @@ ln -s "$(which python3)" "/usr/local/bin/python"
 #
 # Installing jq
 #
+echo "::group::Installing jq"
+case "$(uname -m)" in
+'aarch64') JQ_BINARY_NAME='jq-linux-arm64' ;;
+'x86_64') JQ_BINARY_NAME='jq-linux-amd64' ;;
+'armv7l') JQ_BINARY_NAME='jq-linux-armhf' ;;
+*) exit 1 ;;
+esac
 
-node_arch() {
-  case "$(uname -m)" in
-  'aarch64') JQ_BINARY_NAME='jq-linux-arm64' ;;
-  'x86_64') JQ_BINARY_NAME='jq-linux-amd64' ;;
-  'armv7l') JQ_BINARY_NAME='jq-linux-armhf' ;;
-  *) exit 1 ;;
-  esac
-}
+echo "Using '${JQ_BINARY_NAME}' as binary name to filter for downloading the jq binary."
 JQ_URL="$(curl -s https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | cut -d '"' -f 4 | grep "${JQ_BINARY_NAME}")"
 echo "Downloading jq from: ${JQ_URL}"
 curl --proto '=https' --tlsv1.2 -sL "${JQ_URL}" -o /usr/bin/jq
 chown root:root /usr/bin/jq
 chmod 755 /usr/bin/jq
 echo jq version: "$(/usr/bin/jq --version)"
+echo "::endgroup::"
 #
 # installing Git
 #
