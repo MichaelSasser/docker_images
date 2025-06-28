@@ -29,12 +29,12 @@ echo '::endgroup::'
 
 echo '::group::Installing Cargo Binstall'
 # Pinned to commit-hash for latest release v1.10.12 to prevent accidental problems
-curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/dae59123ebcd0833a1b28f1af21ab08352d3965b/install-from-binstall-release.sh | bash
+# curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/dae59123ebcd0833a1b28f1af21ab08352d3965b/install-from-binstall-release.sh | bash
+curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 echo '::endgroup::'
 
 echo 'group::Installing Tools with Cargo Binstall'
 cargo binstall -y bindgen-cli cbindgen cargo-audit cargo-outdated cargo-hack cargo-semver-checks cargo-llvm-cov
-
 chmod -R 777 "$(dirname "${RUSTUP_HOME}")"
 echo '::endgroup::'
 
@@ -64,26 +64,51 @@ rustc -V
 echo '::endgroup::'
 
 echo '::group::Installing Mold Linker'
-git clone --branch stable https://github.com/rui314/mold.git
-cd mold
+MOLD_URL="$(curl --proto '=https' --tlsv1.2 -sSf https://api.github.com/repos/rui314/mold/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"$(uname -m)\"))")"
+echio "Downloading Mold from: ${MOLD_URL}"
+mkdir -p "mold"
+curl --proto '=https' --tlsv1.2 -sL "${MOLD_URL}" | tar xz --strip-components=1 -C "mold"
 
-MOLD_HASH="$(git rev-list --tags --max-count=1)"
-MOLD_VERSION="$(git describe --tags "$MOLD_HASH")"
-printf "Installing mold version: %s\n" "$MOLD_VERSION"
+# Binaries
+#  bin
+# ├──  ld.mold -> mold
+# └──  mold
+install -D -m 0755 -o root -g root ./mold/bin/mold /usr/bin/mold
+ln -sf /usr/bin/mold /usr/bin/ld.mold
 
-git checkout "$MOLD_HASH"
+# Library
+#  lib
+# └──  mold
+#     └──  mold-wrapper.so
+install -D -m 0644 -o root -g root ./mold/lib/mold/mold-wrapper.so /usr/lib/x86_64-linux-gnu/mold/
 
-mkdir -p build
-cd build
+# Libexec
+#  libexec
+# └──  mold
+#     └──  ld -> ../../bin/mold
+install -d -m 0755 -o root -g root /usr/libexec/mold
+ln -sf /usr/bin/mold /usr/libexec/mold/ld
 
-../install-build-deps.sh
+# Documentation
+#  share
+# ├──  doc
+# │   └──  mold
+# │       └──  LICENSE
+install -D -m 0644 -o root -g root ./mold/share/doc/mold/LICENSE /usr/share/doc/mold/
 
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=c++ -DCMAKE_INSTALL_PREFIX=/usr -B build ..
-cmake --build build -j$(nproc)
-sudo cmake --build build --target install
+# Man pages
+#  share
+# └──  man
+#     └──  man1
+#         ├──  ld.mold.1 -> mold.1
+#         └──  mold.1
+install -D -m 0644 -o root -g root ./mold/share/man/man1/mold.1 /usr/share/man/man1/
+ln -sf /usr/share/man/man1/mold.1 /usr/share/man/man1/ld.mold.1
+
+echo Mold version: "$(/usr/bin/mold --version)"
 
 # cleanup
-rm -rf /root/mold
+rm -rf mold
 echo '::endgroup::'
 
 echo '::group::Cleaning Up Image'
