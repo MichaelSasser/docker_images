@@ -94,7 +94,7 @@ retry_count=0
 max_retries=3
 
 while [ -z "$JQ_URL" ] && [ "$retry_count" -lt "$max_retries" ]; do
-  response=$(curl --retry 5 --connect-timeout 5 --max-time 10 --retry-delay 0 --retry-max-time 40 --retry-all-errors -s "https://api.github.com/repos/jqlang/jq/releases/latest")
+  response=$(curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused 'https://api.github.com/repos/jqlang/jq/releases/latest')
   echo "::group::Installing jq"
   echo "Response from GitHub API: $response" >&2
   echo "::endgroup::"
@@ -118,14 +118,14 @@ fi
 #
 # JQ_URL=""
 # while [ -z "$JQ_URL" ] && ((retry++ < 3)); do
-#     JQ_URL=$(curl --retry 5 --connect-timeout 5 --max-time 10 --retry-delay 0 --retry-max-time 40 --retry-all-errors -s "https://api.github.com/repos/jqlang/jq/releases/latest" | grep browser_download_url | cut -d '"' -f 4 | grep "${JQ_BINARY_NAME}" || true)
+#     JQ_URL=$(curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused "https://api.github.com/repos/jqlang/jq/releases/latest" | grep browser_download_url | cut -d '"' -f 4 | grep "${JQ_BINARY_NAME}" || true)
 #     sleep 1
 # done
 # [ -z "$JQ_URL" ] && { echo "Error: JQ URL not found" >&2; exit 1; }
 
 echo "Downloading jq from: ${JQ_URL}"
 
-curl --retry 5 --connect-timeout 5 --max-time 10 --retry-delay 0 --retry-max-time 40 --retry-all-errors --proto '=https' --tlsv1.2 -sL "${JQ_URL}" -o /usr/bin/jq
+curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused "${JQ_URL}" -o /usr/bin/jq
 chown root:root /usr/bin/jq
 chmod 755 /usr/bin/jq
 echo jq version: "$(/usr/bin/jq --version)"
@@ -199,7 +199,7 @@ echo '::group::Installing Node.JS and tools'
 IFS=' ' read -r -a NODE <<<"$NODE_VERSION"
 for ver in "${NODE[@]}"; do
   printf "\n\t🐋 Installing Node.JS=%s 🐋\t\n" "${ver}"
-  VER=$(curl --retry 5 --connect-timeout 5 --max-time 10 --retry-delay 0 --retry-max-time 40 --retry-all-errors https://nodejs.org/download/release/index.json | jq "[.[] | select(.version|test(\"^v${ver}\"))][0].version" -r)
+  VER=$(curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://nodejs.org/download/release/index.json | jq "[.[] | select(.version|test(\"^v${ver}\"))][0].version" -r)
   NODEPATH="${ACT_TOOLSDIRECTORY}/node/${VER:1}/$(node_arch)"
   mkdir -v -m 0777 -p "$NODEPATH"
   wget "https://nodejs.org/download/release/latest-v${ver}.x/node-$VER-linux-$(node_arch).tar.xz" -O "node-$VER-linux-$(node_arch).tar.xz"
