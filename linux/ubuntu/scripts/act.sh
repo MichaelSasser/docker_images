@@ -86,9 +86,46 @@ case "$(uname -m)" in
 esac
 
 echo "Using '${JQ_BINARY_NAME}' as binary name to filter for downloading the jq binary."
-JQ_URL="$(curl -s https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | cut -d '"' -f 4 | grep "${JQ_BINARY_NAME}")"
+
+# Jeah, that's a little over the top, but we fail here often.
+# Just wanted to see if that works out now.
+JQ_URL=""
+retry_count=0
+max_retries=3
+
+while [ -z "$JQ_URL" ] && [ "$retry_count" -lt "$max_retries" ]; do
+  response=$(curl --retry 5 --connect-timeout 5 --max-time 10 --retry-delay 0 --retry-max-time 40 --retry-all-errors -s "https://api.github.com/repos/jqlang/jq/releases/latest")
+  echo "::group::Installing jq"
+  echo "Response from GitHub API: $response" >&2
+  echo "::endgroup::"
+  if [ -n "$response" ]; then
+    JQ_URL=$(echo "$response" | grep browser_download_url | cut -d '"' -f 4 | grep "${JQ_BINARY_NAME}")
+  fi
+
+  if [ -z "$JQ_URL" ]; then
+    retry_count=$((retry_count + 1))
+    echo "Attempt $retry_count failed. Retrying..." >&2
+    sleep 5
+  fi
+done
+
+if [ -z "$JQ_URL" ]; then
+  echo "Error: Failed to fetch JQ URL after $max_retries attempts" >&2
+  exit 1
+fi
+
+# # Shorter ans simpler version of the above, but with less insight about what's going on.
+#
+# JQ_URL=""
+# while [ -z "$JQ_URL" ] && ((retry++ < 3)); do
+#     JQ_URL=$(curl --retry 5 --connect-timeout 5 --max-time 10 --retry-delay 0 --retry-max-time 40 --retry-all-errors -s "https://api.github.com/repos/jqlang/jq/releases/latest" | grep browser_download_url | cut -d '"' -f 4 | grep "${JQ_BINARY_NAME}" || true)
+#     sleep 1
+# done
+# [ -z "$JQ_URL" ] && { echo "Error: JQ URL not found" >&2; exit 1; }
+
 echo "Downloading jq from: ${JQ_URL}"
-curl --proto '=https' --tlsv1.2 -sL "${JQ_URL}" -o /usr/bin/jq
+
+curl --retry 5 --connect-timeout 5 --max-time 10 --retry-delay 0 --retry-max-time 40 --retry-all-errors --proto '=https' --tlsv1.2 -sL "${JQ_URL}" -o /usr/bin/jq
 chown root:root /usr/bin/jq
 chmod 755 /usr/bin/jq
 echo jq version: "$(/usr/bin/jq --version)"
@@ -162,7 +199,7 @@ echo '::group::Installing Node.JS and tools'
 IFS=' ' read -r -a NODE <<<"$NODE_VERSION"
 for ver in "${NODE[@]}"; do
   printf "\n\t🐋 Installing Node.JS=%s 🐋\t\n" "${ver}"
-  VER=$(curl https://nodejs.org/download/release/index.json | jq "[.[] | select(.version|test(\"^v${ver}\"))][0].version" -r)
+  VER=$(curl --retry 5 --connect-timeout 5 --max-time 10 --retry-delay 0 --retry-max-time 40 --retry-all-errors https://nodejs.org/download/release/index.json | jq "[.[] | select(.version|test(\"^v${ver}\"))][0].version" -r)
   NODEPATH="${ACT_TOOLSDIRECTORY}/node/${VER:1}/$(node_arch)"
   mkdir -v -m 0777 -p "$NODEPATH"
   wget "https://nodejs.org/download/release/latest-v${ver}.x/node-$VER-linux-$(node_arch).tar.xz" -O "node-$VER-linux-$(node_arch).tar.xz"
