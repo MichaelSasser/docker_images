@@ -6,8 +6,12 @@ set -Eeuxo pipefail
 . /etc/environment
 . /imagegeneration/installers/helpers/os.sh
 
-export RUSTUP_HOME=/usr/share/rust/.rustup
-export CARGO_HOME=/usr/share/rust/.cargo
+cat >>/etc/environment <<EOF
+RUSTUP_HOME=/usr/share/rust/.rustup
+CARGO_HOME=/usr/share/rust/.cargo
+EOF
+
+. /etc/environment
 
 echo '::group::Installing Dependencies'
 apt-get -yq update
@@ -15,7 +19,7 @@ apt-get -yq install build-essential llvm clang libssl-dev
 echo '::endgroup::'
 
 echo '::group::Installing Rust'
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=stable --profile=minimal
+curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://sh.rustup.rs | sh -s -- -y --default-toolchain=stable --profile=minimal
 echo '::endgroup::'
 
 source "${CARGO_HOME}/env"
@@ -28,13 +32,28 @@ rustup component add --toolchain beta rustfmt clippy
 echo '::endgroup::'
 
 echo '::group::Installing Cargo Binstall'
-# Pinned to commit-hash for latest release v1.10.12 to prevent accidental problems
-# curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/dae59123ebcd0833a1b28f1af21ab08352d3965b/install-from-binstall-release.sh | bash
-curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+cat >>/etc/environment <<EOF
+BINSTALL_MAXIMUM_RESOLUTION_TIMEOUT=60
+EOF
+
+. /etc/environment
+
+curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+cargo binstall -V || {
+  echo 'Cargo Binstall installation failed'
+  exit 1
+}
 echo '::endgroup::'
 
 echo 'group::Installing Tools with Cargo Binstall'
-cargo binstall -y bindgen-cli cbindgen cargo-audit cargo-outdated cargo-hack cargo-semver-checks cargo-llvm-cov
+cargo binstall -y \
+  bindgen-cli \
+  cbindgen \
+  cargo-audit \
+  cargo-outdated \
+  cargo-hack \
+  cargo-semver-checks \
+  cargo-llvm-cov
 chmod -R 777 "$(dirname "${RUSTUP_HOME}")"
 echo '::endgroup::'
 
@@ -46,10 +65,6 @@ sed "s|PATH=|PATH=${CARGO_HOME}/bin:|g" -i /etc/environment
 cd /root
 ln -sf "${CARGO_HOME}" .cargo
 ln -sf "${RUSTUP_HOME}" .rustup
-{
-  echo "RUSTUP_HOME=${RUSTUP_HOME}"
-  echo "CARGO_HOME=${CARGO_HOME}"
-} | tee -a /etc/environment
 
 echo '::group::Version Rustup'
 rustup -V
@@ -64,10 +79,10 @@ rustc -V
 echo '::endgroup::'
 
 echo '::group::Installing Mold Linker'
-MOLD_URL="$(curl --proto '=https' --tlsv1.2 -sSf https://api.github.com/repos/rui314/mold/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"$(uname -m)\"))")"
+MOLD_URL="$(curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://api.github.com/repos/rui314/mold/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"$(uname -m)\"))")"
 echo "Downloading Mold from: ${MOLD_URL}"
 mkdir -p "mold"
-curl --proto '=https' --tlsv1.2 -sL "${MOLD_URL}" | tar xz --strip-components=1 -C "mold"
+curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused "${MOLD_URL}" | tar xz --strip-components=1 -C "mold"
 
 # Binaries
 #  bin

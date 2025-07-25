@@ -132,7 +132,7 @@ echo '::endgroup::'
 # Installing: typst-cli
 #
 echo '::group::Installing: typst-cli'
-cargo binstall -y typst-cli
+cargo binstall -y --maximum-resolution-timeout 60 typst-cli
 echo '::endgroup::'
 
 #
