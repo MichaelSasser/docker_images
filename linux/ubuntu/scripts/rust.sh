@@ -25,10 +25,10 @@ echo '::endgroup::'
 source "${CARGO_HOME}/env"
 
 echo '::group::Installing Toolchains and Components'
-rustup toolchain install nightly beta
+rustup toolchain install nightly
 rustup component add --toolchain stable rustfmt clippy # Shouldn't be needed
 rustup component add --toolchain nightly rustfmt clippy rustc-codegen-cranelift-preview
-rustup component add --toolchain beta rustfmt clippy
+# rustup component add --toolchain beta rustfmt clippy
 echo '::endgroup::'
 
 echo '::group::Installing Cargo Binstall'

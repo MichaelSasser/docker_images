@@ -23,42 +23,75 @@ At present, this is the only image available. It is based on the Custom,
 Rust and JavaScript image from the original project with some modifications.
 Many of the available JavaScript tools have been removed and some Python
 tools have been added. The latest image is now based on Ubuntu 24.04
-with Node 20 as the default.
+with Node 22 as the default.
 
 ### Images
 
 #### Stable
 
 - [default-24.04](ghcr.io/MichaelSasser/ubuntu:default-24.04), [default-latest](ghcr.io/MichaelSasser/ubuntu:default-latest)
-- [default-22.04](ghcr.io/MichaelSasser/ubuntu:default-22.04) (Deprecated)
 
 #### Development
 
 - [default-24.04-dev](ghcr.io/MichaelSasser/ubuntu:default-24.04-dev), [default-latest-dev](ghcr.io/MichaelSasser/ubuntu:default-latest-dev)
-- [default-22.04-dev](ghcr.io/MichaelSasser/ubuntu:default-22.04-dev) (Deprecated)
 
 ### Software
 
-- **Python**: with the system's Python version, `pip`, `uv` with Python version 3.11, 3.12, 3.13 and 13.13t, `pipx`, `poetry` and `tox`, `toml`
-- **Rust**: `rustup` with the toolchains stable, beta and nightly installed, `rustfmt`, `clippy`, `cbindgen`, `cargo-binstall`, `cargo-audit`, `cargo-outdated`, `cargo-hack`, `cargo-semver-checks`, `rustc-codegen-cranelift-preview`, `cargo-llvm-cov`
-- **JavaScript**: `nvm` with `node` LTS versions 16, 18, 20, 22 (default), 24 and `npm`, `pnpm` and `yarn`
-- **GO**: `go`
-- Additional Tools:
-  - Ansible
-  - ansible-runner
-  - ansible-navigator
-  - ansible-builder
-  - YamlLint
-  - git-cliff
-  - pre-commit
-  - gh
-  - jq
-  - yq
-  - cmake
-  - mold
-  - typst-cli
-  - tea
-  - taplo
+We tries as much as possible to keep the software in the images up to date.
+Therefore we either often get the latest stable version as binary from the
+repo, add custom repositories or use the system package manager to install
+them or build them from source. The following is a list of the software we
+include in the image.
+
+> [!NOTE]
+> Note, this list may not contain all software included in the image, and the
+> list may change over time.
+
+#### Python
+
+- System Python: `python3` with `pip3` installed from the system package
+  manager
+  - Installed using `pip`: `toml`, `ansible-lint`, `ansible-navigator`,
+    `ansible-builder`, `yamllint`, `PyYAML`
+  - Installed using system's package manager: `ansible`, `python3-openssl`,
+    `python3-socks`, `python3-docker`, `python3-dockerpty`,
+    `python3-ansible-runner`
+- `uv`:
+  - Installed versions: `3.11`, `3.12` and `3.13`
+  - Tools: `poetry`, `git-cliff` (deprecated), `pre-commit`, and `tox`
+
+#### Rust
+
+- Toolchains installed using `rustup`:
+  - `stable`: contains `rustfmt`, `clippy`
+  - `nightly`: contains `rustfmt`, `clippy`, `rustc-codegen-cranelift-preview`
+- Tools:
+  - `binstall`
+    - `bindgen-cli`, `cbindgen`, `cargo-audit`, `cargo-outdated`,
+      `cargo-hack`, `cargo-semver-checks`, `cargo-llvm-cov`
+
+#### Node
+
+- Versions: `18`, `20`, `22` (default) and `24`
+- Tools: `nvm`, `npm`, `pnpm` and `yarn`
+
+#### Go
+
+- `go`
+
+#### C/C++ (or build tools in general)
+
+- System's package manager: `build-essential` `llvm` `clang` `libssl-dev`, `cmake`
+- Repo release: `mold`
+
+#### Additional Tools
+
+- gh (cli/cli)
+- jq (jqlang/jq)
+- yq (mikefarah/yq)
+- typst-cli (installed via `binstall`)
+- tea (gitea/tea)
+- taplo (tamasfe/taplo)
 
 ## License
 
@@ -71,7 +104,7 @@ Released under the [MIT license](./LICENSE).
 
 This repository contains parts of
 [`actions/virtual-environments`][actions/virtual-environments] which is also
-licensed under
+licensed under the
 [MIT License](https://github.com/actions/virtual-environments/blob/main/LICENSE).
 
 [actions/virtual-environments]: https://github.com/actions/virtual-environments
