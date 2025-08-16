@@ -196,6 +196,8 @@ echo '::endgroup::'
 # Installing Node.JS and tools
 #
 echo '::group::Installing Node.JS and tools'
+# This installs the versions of Node in the base image. The versions are
+# defined in the Dockerfile.
 IFS=' ' read -r -a NODE <<<"$NODE_VERSION"
 for ver in "${NODE[@]}"; do
   printf "\n\t🐋 Installing Node.JS=%s 🐋\t\n" "${ver}"
@@ -205,7 +207,7 @@ for ver in "${NODE[@]}"; do
   wget "https://nodejs.org/download/release/latest-v${ver}.x/node-$VER-linux-$(node_arch).tar.xz" -O "node-$VER-linux-$(node_arch).tar.xz"
   tar -Jxf "node-$VER-linux-$(node_arch).tar.xz" --strip-components=1 -C "$NODEPATH"
   rm "node-$VER-linux-$(node_arch).tar.xz"
-  if [[ "${ver}" == "20" ]]; then # make this version the default (latest LTS)
+  if [[ "${ver}" == "22" ]]; then # NOTE: make this version the default Version in the base image
     sed "s|^PATH=|PATH=$NODEPATH/bin:|mg" -i /etc/environment
   fi
   export PATH="$NODEPATH/bin:$PATH"

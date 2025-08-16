@@ -11,7 +11,11 @@ ARG FROM_TAG
 
 # > Our custom ARGs
 # latest Node.js LTS versions
-ARG NODE_VERSION="16 18 20 24"
+# NOTE: Those are the versions of Node installed in act.sh (base image).
+#       The default version is also set in act.sh (for the base image)
+#       The default version can be overwritten in js.sh for the none base
+#       image.
+ARG NODE_VERSION="16 18 20 22" # v24 is installed in js.sh
 ARG DISTRO=ubuntu
 ARG TYPE=act
 ARG RUNNER

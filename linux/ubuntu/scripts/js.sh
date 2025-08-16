@@ -23,8 +23,8 @@ echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm' | tee 
 printf "\n\t🐋 Installed NVM 🐋\t\n"
 nvm --version
 
-# node 18 and 20 are already installed in act-*
-versions=("22")
+# Node 18, 20, 22 are already installed in act.sh (base image)
+versions=("24")
 JSON=$(wget -qO- https://nodejs.org/download/release/index.json | jq --compact-output)
 
 for V in "${versions[@]}"; do
@@ -38,6 +38,10 @@ for V in "${versions[@]}"; do
   if [ "$ARCH" = aarch64 ]; then ARCH=arm64; fi
   wget -qO- "https://nodejs.org/download/release/latest-v${V}.x/node-$VER-linux-$ARCH.tar.xz" | tar -Jxf - --strip-components=1 -C "$NODEPATH"
 
+  # Making this Node version the devault
+  # NOTE: Disabled because we want to keep the version installed in act.sh
+  # as the default version. At the point of writing this, this would be 22.
+  #
   # ENVVAR="${V//\./_}"
   # echo "${ENVVAR}=${NODEPATH}" >>/etc/environment
 
