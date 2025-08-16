@@ -24,7 +24,17 @@ env:
   SLUG_QUAY: ${{ vars.USERNAME_QUAY }}/ubuntu
   SLUG_DOCKER: ${{ vars.USERNAME_DOCKER }}/ubuntu
   DISTRO: ubuntu
-  NODE: '18 20'
+  # TODO: Maybe remove the node setup in js.sh and install it here. We probably
+  #       won't use the base image for something else.
+  #       Honestly, we should maybe remove it entirely and build all in one go.
+  #       Maybe do some longer builds outside this repo and download the
+  #       the artifacts in the unified image.
+  # NOTE: Those are the versions of Node installed in act.sh (base image).
+  #       They overwrite the dockerfile defaults.
+  #       The default node version is also set in act.sh (for the base image)
+  #       The default node version can be overwritten in js.sh for the none base
+  #       image.
+  NODE: '18 20 22' # 24 is being installed in js.sh, 22 is the default
   BUILD_REF: ${{ github.sha }}
   SKIP_TEST: false
   PUSH_GHCR: ${{ github.repository == (github.event.pull_request.head.repo.full_name || github.repository) && '1' || '' }}

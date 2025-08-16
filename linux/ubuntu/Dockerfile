@@ -12,6 +12,7 @@ ARG FROM_TAG
 # > Our custom ARGs
 # latest Node.js LTS versions
 # NOTE: Those are the versions of Node installed in act.sh (base image).
+#       This is usually being overwritten by the workflow file.
 #       The default version is also set in act.sh (for the base image)
 #       The default version can be overwritten in js.sh for the none base
 #       image.
