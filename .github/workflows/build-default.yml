@@ -33,7 +33,7 @@ jobs:
   default-amd64:
     name: Build default (amd64)
     runs-on: ubuntu-latest
-    if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (env.PUSH_GHCR == '1' || github.event_name == 'workflow_run')
+    if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (github.event_name == 'workflow_run' || env.PUSH_GHCR == '1')
     env:
       ARCH: amd64
       PLATFORM: linux/amd64
@@ -230,7 +230,7 @@ jobs:
   default-arm64:
     name: Build default (arm64)
     runs-on: ubuntu-24.04-arm
-    if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (env.PUSH_GHCR == '1' || github.event_name == 'workflow_run')
+    if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (github.event_name == 'workflow_run' || env.PUSH_GHCR == '1')
     env:
       ARCH: arm64
       PLATFORM: linux/arm64
