@@ -7,7 +7,7 @@ ARG TARGETARCH
 ARG NODE_VERSION="16 18 20 22"
 ARG DISTRO=ubuntu
 ARG TYPE=default
-ARG RUNNER=runner
+ARG RUNNER=root
 
 ENV DEBIAN_FRONTEND=noninteractive
 SHELL [ "/bin/bash", "--login", "-e", "-o", "pipefail", "-c" ]

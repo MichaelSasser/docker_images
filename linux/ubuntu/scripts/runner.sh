@@ -14,7 +14,7 @@ usermod -aG docker "${RUNNER}"
 usermod -aG docker "${RUNNERADMIN}"
 {
   echo "${RUNNER} ALL=(ALL) NOPASSWD: ALL"
-  echo "${RUNNERADMIN}ALL=(ALL) NOPASSWD: ALL"
+  echo "${RUNNERADMIN} ALL=(ALL) NOPASSWD: ALL"
 } | tee -a /etc/sudoers
 printf "\n\t🐋 Runner user 🐋\t\n"
 su - "${RUNNER}" -c id
