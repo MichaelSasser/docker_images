@@ -25,10 +25,9 @@ env:
 
 jobs:
   base-amd64:
-    name: Build base (amd64) ${{ env.LATEST_TAG }}
+    name: Build base (amd64)
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ env.LATEST_TAG }}
       ARCH: amd64
       PLATFORM: linux/amd64
     outputs:
@@ -51,7 +50,7 @@ jobs:
       - name: Stamp
         id: stamp
         env:
-          TAG: ${{ env.TAG }}
+          TAG: ${{ env.LATEST_TAG }}
         run: |
           set -Eeuo pipefail
 
@@ -156,10 +155,9 @@ jobs:
           echo "arch=${ARCH}" >> $GITHUB_OUTPUT
 
   base-arm64:
-    name: Build base (arm64) ${{ env.LATEST_TAG }}
+    name: Build base (arm64)
     runs-on: ubuntu-24.04-arm
     env:
-      TAG: ${{ env.LATEST_TAG }}
       ARCH: arm64
       PLATFORM: linux/arm64
     outputs:
@@ -182,7 +180,7 @@ jobs:
       - name: Stamp
         id: stamp
         env:
-          TAG: ${{ env.TAG }}
+          TAG: ${{ env.LATEST_TAG }}
         run: |
           set -Eeuo pipefail
 

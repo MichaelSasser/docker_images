@@ -31,11 +31,10 @@ env:
 
 jobs:
   default-amd64:
-    name: Build default (amd64) ${{ env.LATEST_TAG }}
+    name: Build default (amd64)
     runs-on: ubuntu-latest
     if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (env.PUSH_GHCR == '1' || github.event_name == 'workflow_run')
     env:
-      TAG: ${{ env.LATEST_TAG }}
       ARCH: amd64
       PLATFORM: linux/amd64
     outputs:
@@ -61,7 +60,7 @@ jobs:
         if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
         with:
-          name: base-${{ env.TAG }}
+          name: base-${{ env.LATEST_TAG }}
           path: base-metadata
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
@@ -70,7 +69,7 @@ jobs:
       - name: Prepare metadata
         id: meta
         env:
-          TAG: ${{ env.TAG }}
+          TAG: ${{ env.LATEST_TAG }}
         run: |
           set -Eeuo pipefail
 
@@ -229,11 +228,10 @@ jobs:
           echo "arch=${ARCH}" >> $GITHUB_OUTPUT
 
   default-arm64:
-    name: Build default (arm64) ${{ env.LATEST_TAG }}
+    name: Build default (arm64)
     runs-on: ubuntu-24.04-arm
     if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (env.PUSH_GHCR == '1' || github.event_name == 'workflow_run')
     env:
-      TAG: ${{ env.LATEST_TAG }}
       ARCH: arm64
       PLATFORM: linux/arm64
     outputs:
@@ -259,7 +257,7 @@ jobs:
         if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
         with:
-          name: base-${{ env.TAG }}
+          name: base-${{ env.LATEST_TAG }}
           path: base-metadata
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
@@ -268,7 +266,7 @@ jobs:
       - name: Prepare metadata
         id: meta
         env:
-          TAG: ${{ env.TAG }}
+          TAG: ${{ env.LATEST_TAG }}
         run: |
           set -Eeuo pipefail
 
