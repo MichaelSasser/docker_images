@@ -198,7 +198,7 @@ PATH="$UV_INSTALL_DIR:$PATH"
 
 uv python install 3.12 3.13 3.14
 uv tool update-shell
-uv tool install --python-preference=managed poetry git-cliff pre-commit tox
+uv tool install --python-preference=managed pre-commit tox
 echo '::endgroup::'
 
 #

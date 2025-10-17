@@ -68,7 +68,7 @@ Below are lists of tools included in the images.
     `python3-ansible-runner`
 - `uv`:
   - Installed versions: `3.12`, `3.13` and `3.14`
-  - Tools: `poetry` (deprecated), `git-cliff` (deprecated), `pre-commit`,
+  - Tools: `pre-commit`,
     and `tox`
 
 #### Rust
