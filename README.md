@@ -42,9 +42,10 @@ Ubuntu 24.04 with Node 22 as the default.
 
 ### Images
 
-I also tag the images with timestamps, you can find them
+The images are tagged with timestamps, you can find them all
 [here](https://github.com/MichaelSasser/docker_images/pkgs/container/ubuntu).
-You can find the "latest" images below.
+The "latest" images are listed below. The total file size (extracted) varies
+between 5 GB and 6 GB.
 
 #### Stable
 
