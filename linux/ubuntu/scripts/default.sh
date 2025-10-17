@@ -45,7 +45,6 @@ case "$(uname -m)" in
   ;;
 'x86_64')
   scripts=(
-    runner
     basic
     gh
     go

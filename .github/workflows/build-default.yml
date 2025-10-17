@@ -200,7 +200,7 @@ jobs:
             FROM_TAG=${{ env.FROM_TAG }}
             NODE=${{ env.NODE }}
             NODE_VERSION=${{ env.NODE }}
-            RUNNER=runner
+            RUNNER=root
             TYPE=default
           labels: |
             org.opencontainers.image.base.name=ghcr.io/${{ env.SLUG }}:${{ env.BASE_TAG }}
@@ -393,7 +393,7 @@ jobs:
             FROM_TAG=${{ env.FROM_TAG }}
             NODE=${{ env.NODE }}
             NODE_VERSION=${{ env.NODE }}
-            RUNNER=runner
+            RUNNER=root
             TYPE=default
           labels: |
             org.opencontainers.image.base.name=ghcr.io/${{ env.SLUG }}:${{ env.BASE_TAG }}
