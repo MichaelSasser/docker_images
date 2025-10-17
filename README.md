@@ -4,9 +4,10 @@
 
 # Docker images
 
-The images created by this repository are intended to be used with
-[act](https://github.com/nektos/act), to Run your GitHub Actions locally or in
-a CI environment like the one Gitea and Forgejo provide.
+The OCI-compatible images created by this repository are intended to be used with
+[forgejo-runner](https://code.forgejo.org/forgejo/runner)
+(or anything [act](https://github.com/nektos/act) compatible) to power CI/CD
+workflows.
 
 > [!IMPORTANT]
 > This is a hard fork of
@@ -14,13 +15,6 @@ a CI environment like the one Gitea and Forgejo provide.
 > which at the time of forking seemed to be abandoned. This fork is not
 > intended to be a (drop-in) replacement but rather a continuation of the
 > original project with changes that are useful to me.
-
-## The Default Image
-
-This image is based on the "Custom", "Rust" and "JavaScript" image from the
-original project. Many of the JavaScript tools have been removed and some
-Python and Rust tools have been added. The images are based on
-Ubuntu 24.04 with Node 22 as the default.
 
 I initially kept the complex build system from the original project, because
 changing it meant a lot of work, with no benefit to the resulting images.
@@ -30,6 +24,21 @@ it with docker buildx, just to make it potentially even more complex in the end.
 The advantages we get from this are natively built multi-arch images. Meaning
 no qemu emulation layer anymore and therefore quicker turnaround times for
 builds.
+
+The initial build process (with the added tools) took around 5-6 hours. On
+good days the builds went through successfully, but every so often they
+failed due to GitHub free-account limitations.
+Optimizing from where the tools come from and how they are installed, the
+build times went down to under 2 hours.
+The build system rewrite shaves off additional 90% of that, bringing it down
+to under 10 minutes for the entire build.
+
+## The Default Image
+
+This image is based on the "Custom", "Rust" and "JavaScript" image from the
+original project. Many of the JavaScript tools have been removed and some
+Python and Rust tools have been added. The images are based on
+Ubuntu 24.04 with Node 22 as the default.
 
 ### Images
 
@@ -43,20 +52,16 @@ builds.
 
 ### Tools
 
-I am trying to keep the tools (in the images) up to date. Due to
-free account limitations, I need to keep the build time relatively short (<5h)
-and the size small (only a couple of Gigabytes). To find this balance, I use:
+I am trying to keep the tools up to date. To do this, I have scheduled a
+weekly GitHub Action that rebuilds the images to pick up up-to-date tools from
+various sources including:
 
 - The latest stable versions as binaries from the original repositories
 - Custom package manager repositories
 - System package manager
 - Building from source
 
-Below are lists of tools included in the images.
-
-> [!NOTE]
-> Note, this list may not contain all software included in the image, and the
-> may change over time do to varying requirements.
+The lists below show most of the tools included in the image.
 
 #### Python
 

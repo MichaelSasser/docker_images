@@ -36,6 +36,7 @@ echo '::endgroup::'
 case "$(uname -m)" in
 'aarch64')
   scripts=(
+    runner
     basic
     gh
     go
@@ -45,6 +46,7 @@ case "$(uname -m)" in
   ;;
 'x86_64')
   scripts=(
+    runner
     basic
     gh
     go
