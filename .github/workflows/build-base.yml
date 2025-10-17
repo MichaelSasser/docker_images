@@ -28,6 +28,7 @@ jobs:
     name: Build base (amd64)
     runs-on: ubuntu-latest
     env:
+      TAG: ${{ env.LATEST_TAG }}
       ARCH: amd64
       PLATFORM: linux/amd64
     outputs:
@@ -74,6 +75,12 @@ jobs:
           TMP_TAG="act-${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
           TMP_REF="ghcr.io/${SLUG}:${TMP_TAG}"
 
+          if [[ -n "${{ env.PUSH_GHCR }}" || -n "${{ env.PUSH_QUAY }}" || -n "${{ env.PUSH_DOCKER_HUB }}" ]]; then
+            echo "SHOULD_PUSH=1" >> $GITHUB_ENV
+          else
+            echo "SHOULD_PUSH=0" >> $GITHUB_ENV
+          fi
+
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
           echo "PART_TAG=${PART_TAG}" >> $GITHUB_ENV
           echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_ENV
@@ -92,34 +99,36 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - if: env.PUSH_GHCR
+      - if: env.PUSH_GHCR && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: '${{ github.actor }}'
           password: '${{ github.token }}'
 
-      - if: env.PUSH_QUAY
+      - if: env.PUSH_QUAY && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: '${{ secrets.QUAY_USER }}'
           password: '${{ secrets.QUAY_TOKEN }}'
 
-      - if: env.PUSH_DOCKER_HUB
+      - if: env.PUSH_DOCKER_HUB && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           username: '${{ secrets.DOCKER_USER }}'
           password: '${{ secrets.DOCKER_TOKEN }}'
 
       - name: Build act base
+        if: env.SHOULD_PUSH == '1'
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: ./linux/ubuntu/act
+          context: .
+          file: ./linux/ubuntu/act/Dockerfile
           platforms: ${{ env.PLATFORM }}
           pull: true
-          push: true
+          push: ${{ env.SHOULD_PUSH == '1' }}
           provenance: false
           sbom: false
           tags: ${{ env.TMP_REF }}
@@ -141,6 +150,7 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-act-${{ env.ARCH }},mode=max
 
       - name: Record outputs
+        if: env.SHOULD_PUSH == '1'
         id: record
         env:
           TMP_REF: ${{ env.TMP_REF }}
@@ -158,6 +168,7 @@ jobs:
     name: Build base (arm64)
     runs-on: ubuntu-24.04-arm
     env:
+      TAG: ${{ env.LATEST_TAG }}
       ARCH: arm64
       PLATFORM: linux/arm64
     outputs:
@@ -204,6 +215,12 @@ jobs:
           TMP_TAG="act-${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
           TMP_REF="ghcr.io/${SLUG}:${TMP_TAG}"
 
+          if [[ -n "${{ env.PUSH_GHCR }}" || -n "${{ env.PUSH_QUAY }}" || -n "${{ env.PUSH_DOCKER_HUB }}" ]]; then
+            echo "SHOULD_PUSH=1" >> $GITHUB_ENV
+          else
+            echo "SHOULD_PUSH=0" >> $GITHUB_ENV
+          fi
+
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
           echo "PART_TAG=${PART_TAG}" >> $GITHUB_ENV
           echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_ENV
@@ -222,34 +239,36 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - if: env.PUSH_GHCR
+      - if: env.PUSH_GHCR && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: '${{ github.actor }}'
           password: '${{ github.token }}'
 
-      - if: env.PUSH_QUAY
+      - if: env.PUSH_QUAY && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: '${{ secrets.QUAY_USER }}'
           password: '${{ secrets.QUAY_TOKEN }}'
 
-      - if: env.PUSH_DOCKER_HUB
+      - if: env.PUSH_DOCKER_HUB && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           username: '${{ secrets.DOCKER_USER }}'
           password: '${{ secrets.DOCKER_TOKEN }}'
 
       - name: Build act base
+        if: env.SHOULD_PUSH == '1'
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: ./linux/ubuntu/act
+          context: .
+          file: ./linux/ubuntu/act/Dockerfile
           platforms: ${{ env.PLATFORM }}
           pull: true
-          push: true
+          push: ${{ env.SHOULD_PUSH == '1' }}
           provenance: false
           sbom: false
           tags: ${{ env.TMP_REF }}
@@ -271,6 +290,7 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-act-${{ env.ARCH }},mode=max
 
       - name: Record outputs
+        if: env.SHOULD_PUSH == '1'
         id: record
         env:
           TMP_REF: ${{ env.TMP_REF }}
@@ -302,6 +322,7 @@ jobs:
       TMP_REF_ARM64: ${{ needs.base-arm64.outputs.tmp_ref }}
       TMP_TAG_ARM64: ${{ needs.base-arm64.outputs.tmp_tag }}
       PRIMARY_TAG: act-${{ needs.base-amd64.outputs.tag }}-${{ needs.base-amd64.outputs.part_tag }}
+      SHOULD_PUSH: ${{ (env.PUSH_GHCR != '' || env.PUSH_QUAY != '' || env.PUSH_DOCKER_HUB != '') && '1' || '0' }}
     outputs:
       base_digest: ${{ steps.digest.outputs.base_digest }}
       base_ref: ${{ steps.digest.outputs.base_ref }}
@@ -318,27 +339,28 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - if: env.PUSH_GHCR
+      - if: env.PUSH_GHCR && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: '${{ github.actor }}'
           password: '${{ github.token }}'
 
-      - if: env.PUSH_QUAY
+      - if: env.PUSH_QUAY && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: '${{ secrets.QUAY_USER }}'
           password: '${{ secrets.QUAY_TOKEN }}'
 
-      - if: env.PUSH_DOCKER_HUB
+      - if: env.PUSH_DOCKER_HUB && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           username: '${{ secrets.DOCKER_USER }}'
           password: '${{ secrets.DOCKER_TOKEN }}'
 
       - name: Create multi-arch manifest
+        if: env.SHOULD_PUSH == '1'
         run: |
           set -Eeuo pipefail
           PRIMARY_REF="ghcr.io/${SLUG}:${PRIMARY_TAG}"
@@ -346,6 +368,7 @@ jobs:
           echo "PRIMARY_REF=${PRIMARY_REF}" >> $GITHUB_ENV
 
       - name: Inspect manifest digest
+        if: env.SHOULD_PUSH == '1'
         id: digest
         run: |
           set -Eeuo pipefail
@@ -357,6 +380,7 @@ jobs:
           echo "base_ref=${PRIMARY_REF_DIGEST}" >> $GITHUB_OUTPUT
 
       - name: Tag and push manifests
+        if: env.SHOULD_PUSH == '1'
         env:
           TAG: ${{ env.TAG }}
           PART_TAG: ${{ env.PART_TAG }}
@@ -443,11 +467,13 @@ jobs:
           fi
 
       - name: Cleanup temporary tags
+        if: env.SHOULD_PUSH == '1'
         run: |
           docker buildx imagetools rm "${TMP_REF_AMD64}" || true
           docker buildx imagetools rm "${TMP_REF_ARM64}" || true
 
       - name: Write base metadata
+        if: env.SHOULD_PUSH == '1'
         run: |
           python - <<'PY'
             import json
@@ -478,6 +504,7 @@ jobs:
           TAG_SUFFIXES: ${{ env.TAG_SUFFIXES }}
 
       - name: Persist base metadata
+        if: env.SHOULD_PUSH == '1'
         uses: actions/upload-artifact@v4
         with:
           name: base-${{ env.TAG }}

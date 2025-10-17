@@ -33,8 +33,9 @@ jobs:
   default-amd64:
     name: Build default (amd64)
     runs-on: ubuntu-latest
-    if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (github.event_name == 'workflow_run' || env.PUSH_GHCR == '1')
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))
     env:
+      TAG: ${{ env.LATEST_TAG }}
       ARCH: amd64
       PLATFORM: linux/amd64
     outputs:
@@ -111,6 +112,14 @@ jobs:
           TMP_TAG="default-${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
           TMP_REF="ghcr.io/${SLUG}:${TMP_TAG}"
 
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            echo "SHOULD_PUSH=1" >> $GITHUB_ENV
+          elif [[ -n "${{ env.PUSH_GHCR }}" || -n "${{ env.PUSH_QUAY }}" || -n "${{ env.PUSH_DOCKER_HUB }}" ]]; then
+            echo "SHOULD_PUSH=1" >> $GITHUB_ENV
+          else
+            echo "SHOULD_PUSH=0" >> $GITHUB_ENV
+          fi
+
           echo "PART_TAG=${PART_TAG}" >> $GITHUB_ENV
           echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_ENV
           echo "BASE_TAG=${BASE_TAG}" >> $GITHUB_ENV
@@ -128,28 +137,28 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - if: env.PUSH_GHCR
+      - if: env.PUSH_GHCR && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: '${{ github.actor }}'
           password: '${{ github.token }}'
 
-      - if: env.PUSH_QUAY
+      - if: env.PUSH_QUAY && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: '${{ secrets.QUAY_USER }}'
           password: '${{ secrets.QUAY_TOKEN }}'
 
-      - if: env.PUSH_DOCKER_HUB
+      - if: env.PUSH_DOCKER_HUB && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           username: '${{ secrets.DOCKER_USER }}'
           password: '${{ secrets.DOCKER_TOKEN }}'
 
       - name: Resolve base digest
-        if: github.event_name != 'workflow_run'
+        if: github.event_name != 'workflow_run' && env.SHOULD_PUSH == '1'
         env:
           BASE_SOURCE: ${{ env.BASE_SOURCE }}
         run: |
@@ -159,6 +168,7 @@ jobs:
           echo "BASE_REF=${BASE_SOURCE}@${DIGEST}" >> $GITHUB_ENV
 
       - name: Finalize metadata
+        if: env.SHOULD_PUSH == '1'
         id: finalize
         env:
           TAG: ${{ env.TAG }}
@@ -183,10 +193,12 @@ jobs:
           echo "base_digest=${BASE_DIGEST}" >> $GITHUB_OUTPUT
 
       - name: Build default image
+        if: env.SHOULD_PUSH == '1'
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: ./linux/ubuntu/default
+          context: .
+          file: ./linux/ubuntu/default/Dockerfile
           platforms: ${{ env.PLATFORM }}
           pull: true
           push: true
@@ -214,6 +226,7 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }},mode=max
 
       - name: Record outputs
+        if: env.SHOULD_PUSH == '1'
         id: record
         env:
           TMP_REF: ${{ env.TMP_REF }}
@@ -230,8 +243,9 @@ jobs:
   default-arm64:
     name: Build default (arm64)
     runs-on: ubuntu-24.04-arm
-    if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (github.event_name == 'workflow_run' || env.PUSH_GHCR == '1')
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))
     env:
+      TAG: ${{ env.LATEST_TAG }}
       ARCH: arm64
       PLATFORM: linux/arm64
     outputs:
@@ -322,30 +336,38 @@ jobs:
           echo "TMP_REF=${TMP_REF}" >> $GITHUB_ENV
           echo "BASE_SOURCE=${BASE_SOURCE}" >> $GITHUB_OUTPUT
 
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            echo "SHOULD_PUSH=1" >> $GITHUB_ENV
+          elif [[ -n "${{ env.PUSH_GHCR }}" || -n "${{ env.PUSH_QUAY }}" || -n "${{ env.PUSH_DOCKER_HUB }}" ]]; then
+            echo "SHOULD_PUSH=1" >> $GITHUB_ENV
+          else
+            echo "SHOULD_PUSH=0" >> $GITHUB_ENV
+          fi
+
       - uses: docker/setup-buildx-action@v3
 
-      - if: env.PUSH_GHCR
+      - if: env.PUSH_GHCR && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: '${{ github.actor }}'
           password: '${{ github.token }}'
 
-      - if: env.PUSH_QUAY
+      - if: env.PUSH_QUAY && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: '${{ secrets.QUAY_USER }}'
           password: '${{ secrets.QUAY_TOKEN }}'
 
-      - if: env.PUSH_DOCKER_HUB
+      - if: env.PUSH_DOCKER_HUB && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           username: '${{ secrets.DOCKER_USER }}'
           password: '${{ secrets.DOCKER_TOKEN }}'
 
       - name: Resolve base digest
-        if: github.event_name != 'workflow_run'
+        if: github.event_name != 'workflow_run' && env.SHOULD_PUSH == '1'
         env:
           BASE_SOURCE: ${{ env.BASE_SOURCE }}
         run: |
@@ -382,7 +404,8 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: ./linux/ubuntu/default
+          context: .
+          file: ./linux/ubuntu/default/Dockerfile
           platforms: ${{ env.PLATFORM }}
           pull: true
           push: true
@@ -441,6 +464,7 @@ jobs:
       TMP_REF_ARM64: ${{ needs.default-arm64.outputs.tmp_ref }}
       TMP_TAG_ARM64: ${{ needs.default-arm64.outputs.tmp_tag }}
       PRIMARY_TAG: default-${{ needs.default-amd64.outputs.tag }}-${{ needs.default-amd64.outputs.part_tag }}
+      SHOULD_PUSH: ${{ (env.PUSH_GHCR != '' || env.PUSH_QUAY != '' || env.PUSH_DOCKER_HUB != '') && '1' || '0' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -451,27 +475,28 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - if: env.PUSH_GHCR
+      - if: env.PUSH_GHCR && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: '${{ github.actor }}'
           password: '${{ github.token }}'
 
-      - if: env.PUSH_QUAY
+      - if: env.PUSH_QUAY && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: '${{ secrets.QUAY_USER }}'
           password: '${{ secrets.QUAY_TOKEN }}'
 
-      - if: env.PUSH_DOCKER_HUB
+      - if: env.PUSH_DOCKER_HUB && env.SHOULD_PUSH == '1'
         uses: docker/login-action@v3
         with:
           username: '${{ secrets.DOCKER_USER }}'
           password: '${{ secrets.DOCKER_TOKEN }}'
 
       - name: Create multi-arch manifest
+        if: env.SHOULD_PUSH == '1'
         run: |
           set -Eeuo pipefail
           PRIMARY_REF="ghcr.io/${SLUG}:${PRIMARY_TAG}"
@@ -479,6 +504,7 @@ jobs:
           echo "PRIMARY_REF=${PRIMARY_REF}" >> $GITHUB_ENV
 
       - name: Inspect manifest digest
+        if: env.SHOULD_PUSH == '1'
         run: |
           set -Eeuo pipefail
           DIGEST=$(docker buildx imagetools inspect "${PRIMARY_REF}" | awk '/Digest:/ {print $2; exit}')
@@ -486,6 +512,7 @@ jobs:
           echo "PRIMARY_REF_DIGEST=${PRIMARY_REF}@${DIGEST}" >> $GITHUB_ENV
 
       - name: Tag and push manifests
+        if: env.SHOULD_PUSH == '1'
         env:
           TAG: ${{ env.TAG }}
           PART_TAG: ${{ env.PART_TAG }}
@@ -569,6 +596,7 @@ jobs:
           fi
 
       - name: Cleanup temporary tags
+        if: env.SHOULD_PUSH == '1'
         run: |
           docker buildx imagetools rm "${TMP_REF_AMD64}" || true
           docker buildx imagetools rm "${TMP_REF_ARM64}" || true
