@@ -1,0 +1,576 @@
+name: Build default
+
+on:
+  workflow_run:
+    workflows: ['Build base']
+    types: [completed]
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/build-default.yml'
+      - 'linux/ubuntu/default/**'
+      - 'linux/ubuntu/scripts/**'
+  pull_request:
+    paths:
+      - '.github/workflows/build-default.yml'
+      - 'linux/ubuntu/default/**'
+      - 'linux/ubuntu/scripts/**'
+  workflow_dispatch:
+
+env:
+  SLUG: ${{ github.repository_owner }}/ubuntu
+  SLUG_QUAY: ${{ vars.USERNAME_QUAY && format('{0}/ubuntu', vars.USERNAME_QUAY) || '' }}
+  SLUG_DOCKER: ${{ vars.USERNAME_DOCKER && format('{0}/ubuntu', vars.USERNAME_DOCKER) || '' }}
+  DISTRO: ubuntu
+  NODE: '18 20 22'
+  BUILD_REF: ${{ github.sha }}
+  PUSH_GHCR: ${{ github.repository == (github.event.pull_request.head.repo.full_name || github.repository) && '1' || '' }}
+  PUSH_QUAY: ${{ secrets.QUAY_USER && secrets.QUAY_TOKEN && '1' || '' }}
+  PUSH_DOCKER_HUB: ${{ secrets.DOCKER_USER && secrets.DOCKER_TOKEN && '1' || '' }}
+  LATEST_TAG: 24.04
+
+jobs:
+  default-amd64:
+    name: Build default (amd64) ${{ env.LATEST_TAG }}
+    runs-on: ubuntu-latest
+    if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (env.PUSH_GHCR == '1' || github.event_name == 'workflow_run')
+    env:
+      TAG: ${{ env.LATEST_TAG }}
+      ARCH: amd64
+      PLATFORM: linux/amd64
+    outputs:
+      tag: ${{ steps.finalize.outputs.tag }}
+      part_tag: ${{ steps.finalize.outputs.part_tag }}
+      is_release: ${{ steps.finalize.outputs.is_release }}
+      base_tag: ${{ steps.finalize.outputs.base_tag }}
+      from_tag: ${{ steps.finalize.outputs.from_tag }}
+      base_ref: ${{ steps.finalize.outputs.base_ref }}
+      base_digest: ${{ steps.finalize.outputs.base_digest }}
+      tmp_ref: ${{ steps.record.outputs.tmp_ref }}
+      tmp_tag: ${{ steps.record.outputs.tmp_tag }}
+      digest: ${{ steps.record.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/github-script@v8
+        with:
+          github-token: n/a
+          script: core.exportVariable('SLUG', process.env.SLUG.toLowerCase());
+
+      - name: Download base metadata
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: base-${{ env.TAG }}
+          path: base-metadata
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Prepare metadata
+        id: meta
+        env:
+          TAG: ${{ env.TAG }}
+        run: |
+          set -Eeuo pipefail
+
+          TAG="${TAG}"
+
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            python - <<'PY' > metadata.env
+              import json
+              import os
+
+              with open('base-metadata/base-metadata.json', 'r', encoding='utf-8') as fh:
+                  data = json.load(fh)
+
+              slug = os.environ['SLUG']
+              tag = data['tag']
+              part_tag = data['part_tag']
+
+              print(f"PART_TAG={part_tag}")
+              print(f"IS_RELEASE={'1' if data['is_release'] else '0'}")
+              print(f"BASE_DIGEST={data['digest']}")
+              print(f"BASE_SOURCE=ghcr.io/{slug}:act-{tag}-{part_tag}")
+              print(f"BASE_TAG=act-{tag}-{part_tag}")
+            PY
+
+            source metadata.env
+            FROM_TAG="${BASE_TAG}"
+            BASE_REF="${BASE_SOURCE}@${BASE_DIGEST}"
+          else
+            PART_TAG=dev
+            IS_RELEASE=0
+            BASE_TAG=act-latest-dev
+            FROM_TAG="${BASE_TAG}"
+            BASE_SOURCE="ghcr.io/${SLUG}:${BASE_TAG}"
+            BASE_DIGEST=""
+            BASE_REF=""
+          fi
+
+          BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          TMP_TAG="default-${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
+          TMP_REF="ghcr.io/${SLUG}:${TMP_TAG}"
+
+          echo "PART_TAG=${PART_TAG}" >> $GITHUB_ENV
+          echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_ENV
+          echo "BASE_TAG=${BASE_TAG}" >> $GITHUB_ENV
+          echo "FROM_TAG=${FROM_TAG}" >> $GITHUB_ENV
+          echo "BASE_SOURCE=${BASE_SOURCE}" >> $GITHUB_ENV
+          if [[ -n "${BASE_DIGEST}" ]]; then
+            echo "BASE_DIGEST=${BASE_DIGEST}" >> $GITHUB_ENV
+            echo "BASE_REF=${BASE_REF}" >> $GITHUB_ENV
+          fi
+          echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
+          echo "BUILD_TAG=default-${TAG}" >> $GITHUB_ENV
+          echo "TMP_TAG=${TMP_TAG}" >> $GITHUB_ENV
+          echo "TMP_REF=${TMP_REF}" >> $GITHUB_ENV
+          echo "BASE_SOURCE=${BASE_SOURCE}" >> $GITHUB_OUTPUT
+
+      - uses: docker/setup-buildx-action@v3
+
+      - if: env.PUSH_GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: '${{ github.actor }}'
+          password: '${{ github.token }}'
+
+      - if: env.PUSH_QUAY
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: '${{ secrets.QUAY_USER }}'
+          password: '${{ secrets.QUAY_TOKEN }}'
+
+      - if: env.PUSH_DOCKER_HUB
+        uses: docker/login-action@v3
+        with:
+          username: '${{ secrets.DOCKER_USER }}'
+          password: '${{ secrets.DOCKER_TOKEN }}'
+
+      - name: Resolve base digest
+        if: github.event_name != 'workflow_run'
+        env:
+          BASE_SOURCE: ${{ env.BASE_SOURCE }}
+        run: |
+          set -Eeuo pipefail
+          DIGEST=$(docker buildx imagetools inspect "${BASE_SOURCE}" | awk '/Digest:/ {print $2; exit}')
+          echo "BASE_DIGEST=${DIGEST}" >> $GITHUB_ENV
+          echo "BASE_REF=${BASE_SOURCE}@${DIGEST}" >> $GITHUB_ENV
+
+      - name: Finalize metadata
+        id: finalize
+        env:
+          TAG: ${{ env.TAG }}
+          PART_TAG: ${{ env.PART_TAG }}
+          IS_RELEASE: ${{ env.IS_RELEASE }}
+          BASE_TAG: ${{ env.BASE_TAG }}
+          FROM_TAG: ${{ env.FROM_TAG }}
+          BASE_REF: ${{ env.BASE_REF }}
+          BASE_DIGEST: ${{ env.BASE_DIGEST }}
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "${BASE_DIGEST}" ]]; then
+            echo "Base digest unavailable" >&2
+            exit 1
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "part_tag=${PART_TAG}" >> $GITHUB_OUTPUT
+          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
+          echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+          echo "from_tag=${FROM_TAG}" >> $GITHUB_OUTPUT
+          echo "base_ref=${BASE_REF}" >> $GITHUB_OUTPUT
+          echo "base_digest=${BASE_DIGEST}" >> $GITHUB_OUTPUT
+
+      - name: Build default image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./linux/ubuntu/default
+          platforms: ${{ env.PLATFORM }}
+          pull: true
+          push: true
+          provenance: false
+          sbom: false
+          tags: ${{ env.TMP_REF }}
+          build-args: |
+            BUILD_DATE=${{ env.BUILD_DATE }}
+            BUILD_REF=${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || env.BUILD_REF }}
+            BUILD_TAG=${{ env.BUILD_TAG }}
+            BUILD_TAG_VERSION=${{ env.PART_TAG }}
+            BUILD_OWNER=${{ github.repository_owner }}
+            BUILD_REPO=${{ github.repository }}
+            DISTRO=${{ env.DISTRO }}
+            FROM_IMAGE=ghcr.io/${{ env.SLUG }}
+            FROM_TAG=${{ env.FROM_TAG }}
+            NODE=${{ env.NODE }}
+            NODE_VERSION=${{ env.NODE }}
+            RUNNER=runner
+            TYPE=default
+          labels: |
+            org.opencontainers.image.base.name=ghcr.io/${{ env.SLUG }}:${{ env.BASE_TAG }}
+            org.opencontainers.image.base.digest=${{ env.BASE_DIGEST }}
+          cache-from: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }}
+          cache-to: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }},mode=max
+
+      - name: Record outputs
+        id: record
+        env:
+          TMP_REF: ${{ env.TMP_REF }}
+          TMP_TAG: ${{ env.TMP_TAG }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          ARCH: ${{ env.ARCH }}
+        run: |
+          set -Eeuo pipefail
+          echo "tmp_ref=${TMP_REF}" >> $GITHUB_OUTPUT
+          echo "tmp_tag=${TMP_TAG}" >> $GITHUB_OUTPUT
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
+          echo "arch=${ARCH}" >> $GITHUB_OUTPUT
+
+  default-arm64:
+    name: Build default (arm64) ${{ env.LATEST_TAG }}
+    runs-on: ubuntu-24.04-arm
+    if: (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))) && (env.PUSH_GHCR == '1' || github.event_name == 'workflow_run')
+    env:
+      TAG: ${{ env.LATEST_TAG }}
+      ARCH: arm64
+      PLATFORM: linux/arm64
+    outputs:
+      tag: ${{ steps.finalize.outputs.tag }}
+      part_tag: ${{ steps.finalize.outputs.part_tag }}
+      is_release: ${{ steps.finalize.outputs.is_release }}
+      base_tag: ${{ steps.finalize.outputs.base_tag }}
+      from_tag: ${{ steps.finalize.outputs.from_tag }}
+      base_ref: ${{ steps.finalize.outputs.base_ref }}
+      base_digest: ${{ steps.finalize.outputs.base_digest }}
+      tmp_ref: ${{ steps.record.outputs.tmp_ref }}
+      tmp_tag: ${{ steps.record.outputs.tmp_tag }}
+      digest: ${{ steps.record.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/github-script@v8
+        with:
+          github-token: n/a
+          script: core.exportVariable('SLUG', process.env.SLUG.toLowerCase());
+
+      - name: Download base metadata
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: base-${{ env.TAG }}
+          path: base-metadata
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Prepare metadata
+        id: meta
+        env:
+          TAG: ${{ env.TAG }}
+        run: |
+          set -Eeuo pipefail
+
+          TAG="${TAG}"
+
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            python - <<'PY' > metadata.env
+              import json
+              import os
+
+              with open('base-metadata/base-metadata.json', 'r', encoding='utf-8') as fh:
+                data = json.load(fh)
+
+              slug = os.environ['SLUG']
+              tag = data['tag']
+              part_tag = data['part_tag']
+
+              print(f"PART_TAG={part_tag}")
+              print(f"IS_RELEASE={'1' if data['is_release'] else '0'}")
+              print(f"BASE_DIGEST={data['digest']}")
+              print(f"BASE_SOURCE=ghcr.io/{slug}:act-{tag}-{part_tag}")
+              print(f"BASE_TAG=act-{tag}-{part_tag}")
+            PY
+            source metadata.env
+            FROM_TAG="${BASE_TAG}"
+            BASE_REF="${BASE_SOURCE}@${BASE_DIGEST}"
+          else
+            PART_TAG=dev
+            IS_RELEASE=0
+            BASE_TAG=act-latest-dev
+            FROM_TAG="${BASE_TAG}"
+            BASE_SOURCE="ghcr.io/${SLUG}:${BASE_TAG}"
+            BASE_DIGEST=""
+            BASE_REF=""
+          fi
+
+          BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          TMP_TAG="default-${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
+          TMP_REF="ghcr.io/${SLUG}:${TMP_TAG}"
+
+          echo "PART_TAG=${PART_TAG}" >> $GITHUB_ENV
+          echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_ENV
+          echo "BASE_TAG=${BASE_TAG}" >> $GITHUB_ENV
+          echo "FROM_TAG=${FROM_TAG}" >> $GITHUB_ENV
+          echo "BASE_SOURCE=${BASE_SOURCE}" >> $GITHUB_ENV
+          if [[ -n "${BASE_DIGEST}" ]]; then
+            echo "BASE_DIGEST=${BASE_DIGEST}" >> $GITHUB_ENV
+            echo "BASE_REF=${BASE_REF}" >> $GITHUB_ENV
+          fi
+          echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
+          echo "BUILD_TAG=default-${TAG}" >> $GITHUB_ENV
+          echo "TMP_TAG=${TMP_TAG}" >> $GITHUB_ENV
+          echo "TMP_REF=${TMP_REF}" >> $GITHUB_ENV
+          echo "BASE_SOURCE=${BASE_SOURCE}" >> $GITHUB_OUTPUT
+
+      - uses: docker/setup-buildx-action@v3
+
+      - if: env.PUSH_GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: '${{ github.actor }}'
+          password: '${{ github.token }}'
+
+      - if: env.PUSH_QUAY
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: '${{ secrets.QUAY_USER }}'
+          password: '${{ secrets.QUAY_TOKEN }}'
+
+      - if: env.PUSH_DOCKER_HUB
+        uses: docker/login-action@v3
+        with:
+          username: '${{ secrets.DOCKER_USER }}'
+          password: '${{ secrets.DOCKER_TOKEN }}'
+
+      - name: Resolve base digest
+        if: github.event_name != 'workflow_run'
+        env:
+          BASE_SOURCE: ${{ env.BASE_SOURCE }}
+        run: |
+          set -Eeuo pipefail
+          DIGEST=$(docker buildx imagetools inspect "${BASE_SOURCE}" | awk '/Digest:/ {print $2; exit}')
+          echo "BASE_DIGEST=${DIGEST}" >> $GITHUB_ENV
+          echo "BASE_REF=${BASE_SOURCE}@${DIGEST}" >> $GITHUB_ENV
+
+      - name: Finalize metadata
+        id: finalize
+        env:
+          TAG: ${{ env.TAG }}
+          PART_TAG: ${{ env.PART_TAG }}
+          IS_RELEASE: ${{ env.IS_RELEASE }}
+          BASE_TAG: ${{ env.BASE_TAG }}
+          FROM_TAG: ${{ env.FROM_TAG }}
+          BASE_REF: ${{ env.BASE_REF }}
+          BASE_DIGEST: ${{ env.BASE_DIGEST }}
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "${BASE_DIGEST}" ]]; then
+            echo "Base digest unavailable" >&2
+            exit 1
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "part_tag=${PART_TAG}" >> $GITHUB_OUTPUT
+          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
+          echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+          echo "from_tag=${FROM_TAG}" >> $GITHUB_OUTPUT
+          echo "base_ref=${BASE_REF}" >> $GITHUB_OUTPUT
+          echo "base_digest=${BASE_DIGEST}" >> $GITHUB_OUTPUT
+
+      - name: Build default image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./linux/ubuntu/default
+          platforms: ${{ env.PLATFORM }}
+          pull: true
+          push: true
+          provenance: false
+          sbom: false
+          tags: ${{ env.TMP_REF }}
+          build-args: |
+            BUILD_DATE=${{ env.BUILD_DATE }}
+            BUILD_REF=${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || env.BUILD_REF }}
+            BUILD_TAG=${{ env.BUILD_TAG }}
+            BUILD_TAG_VERSION=${{ env.PART_TAG }}
+            BUILD_OWNER=${{ github.repository_owner }}
+            BUILD_REPO=${{ github.repository }}
+            DISTRO=${{ env.DISTRO }}
+            FROM_IMAGE=ghcr.io/${{ env.SLUG }}
+            FROM_TAG=${{ env.FROM_TAG }}
+            NODE=${{ env.NODE }}
+            NODE_VERSION=${{ env.NODE }}
+            RUNNER=runner
+            TYPE=default
+          labels: |
+            org.opencontainers.image.base.name=ghcr.io/${{ env.SLUG }}:${{ env.BASE_TAG }}
+            org.opencontainers.image.base.digest=${{ env.BASE_DIGEST }}
+          cache-from: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }}
+          cache-to: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }},mode=max
+
+      - name: Record outputs
+        id: record
+        env:
+          TMP_REF: ${{ env.TMP_REF }}
+          TMP_TAG: ${{ env.TMP_TAG }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          ARCH: ${{ env.ARCH }}
+        run: |
+          set -Eeuo pipefail
+          echo "tmp_ref=${TMP_REF}" >> $GITHUB_OUTPUT
+          echo "tmp_tag=${TMP_TAG}" >> $GITHUB_OUTPUT
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
+          echo "arch=${ARCH}" >> $GITHUB_OUTPUT
+
+  default-merge:
+    name: Publish default manifests ${{ needs.default-amd64.outputs.tag }}
+    needs:
+      - default-amd64
+      - default-arm64
+    runs-on: ubuntu-latest
+    if: ${{ needs.default-amd64.outputs.tmp_ref && needs.default-arm64.outputs.tmp_ref }}
+    env:
+      TAG: ${{ needs.default-amd64.outputs.tag }}
+      PART_TAG: ${{ needs.default-amd64.outputs.part_tag }}
+      IS_RELEASE: ${{ needs.default-amd64.outputs.is_release }}
+      BASE_TAG: ${{ needs.default-amd64.outputs.base_tag }}
+      BASE_DIGEST: ${{ needs.default-amd64.outputs.base_digest }}
+      TMP_REF_AMD64: ${{ needs.default-amd64.outputs.tmp_ref }}
+      TMP_TAG_AMD64: ${{ needs.default-amd64.outputs.tmp_tag }}
+      TMP_REF_ARM64: ${{ needs.default-arm64.outputs.tmp_ref }}
+      TMP_TAG_ARM64: ${{ needs.default-arm64.outputs.tmp_tag }}
+      PRIMARY_TAG: default-${{ needs.default-amd64.outputs.tag }}-${{ needs.default-amd64.outputs.part_tag }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/github-script@v8
+        with:
+          github-token: n/a
+          script: core.exportVariable('SLUG', process.env.SLUG.toLowerCase());
+
+      - uses: docker/setup-buildx-action@v3
+
+      - if: env.PUSH_GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: '${{ github.actor }}'
+          password: '${{ github.token }}'
+
+      - if: env.PUSH_QUAY
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: '${{ secrets.QUAY_USER }}'
+          password: '${{ secrets.QUAY_TOKEN }}'
+
+      - if: env.PUSH_DOCKER_HUB
+        uses: docker/login-action@v3
+        with:
+          username: '${{ secrets.DOCKER_USER }}'
+          password: '${{ secrets.DOCKER_TOKEN }}'
+
+      - name: Create multi-arch manifest
+        run: |
+          set -Eeuo pipefail
+          PRIMARY_REF="ghcr.io/${SLUG}:${PRIMARY_TAG}"
+          docker buildx imagetools create --tag "${PRIMARY_REF}" "${TMP_REF_AMD64}" "${TMP_REF_ARM64}"
+          echo "PRIMARY_REF=${PRIMARY_REF}" >> $GITHUB_ENV
+
+      - name: Inspect manifest digest
+        run: |
+          set -Eeuo pipefail
+          DIGEST=$(docker buildx imagetools inspect "${PRIMARY_REF}" | awk '/Digest:/ {print $2; exit}')
+          echo "PRIMARY_DIGEST=${DIGEST}" >> $GITHUB_ENV
+          echo "PRIMARY_REF_DIGEST=${PRIMARY_REF}@${DIGEST}" >> $GITHUB_ENV
+
+      - name: Tag and push manifests
+        env:
+          TAG: ${{ env.TAG }}
+          PART_TAG: ${{ env.PART_TAG }}
+          IS_RELEASE: ${{ env.IS_RELEASE }}
+          PRIMARY_TAG: ${{ env.PRIMARY_TAG }}
+          PRIMARY_REF_DIGEST: ${{ env.PRIMARY_REF_DIGEST }}
+          SLUG: ${{ env.SLUG }}
+          SLUG_QUAY: ${{ env.SLUG_QUAY }}
+          SLUG_DOCKER: ${{ env.SLUG_DOCKER }}
+          PUSH_GHCR: ${{ env.PUSH_GHCR }}
+          PUSH_QUAY: ${{ env.PUSH_QUAY }}
+          PUSH_DOCKER_HUB: ${{ env.PUSH_DOCKER_HUB }}
+        run: |
+          set -Eeuo pipefail
+
+          declare -a TAG_SUFFIXES=(
+            "${PRIMARY_TAG}"
+            "default-latest-${PART_TAG}"
+          )
+
+          if [[ "${IS_RELEASE}" == "1" ]]; then
+            TAG_SUFFIXES+=("default-${TAG}" "default-latest" "default-${TAG}-dev")
+          else
+            TAG_SUFFIXES+=("default-${TAG}-dev")
+          fi
+
+          TAG_SUFFIXES+=("default-latest-dev")
+
+          mapfile -t UNIQUE_TAGS < <(printf '%s\n' "${TAG_SUFFIXES[@]}" | awk '!seen[$0]++')
+
+          declare -a GHCR_TAGS=()
+          for tag in "${UNIQUE_TAGS[@]}"; do
+            if [[ "${tag}" != "${PRIMARY_TAG}" ]]; then
+              GHCR_TAGS+=("${tag}")
+            fi
+          done
+
+          push_tags() {
+            local prefix="$1"
+            local enabled="$2"
+            shift 2
+
+            if [[ -z "${enabled}" ]]; then
+              return 0
+            fi
+
+            if [[ $# -eq 0 ]]; then
+              return 0
+            fi
+
+            local args=()
+            for tag in "$@"; do
+              args+=("--tag" "${prefix}:${tag}")
+            done
+            args+=("${PRIMARY_REF_DIGEST}")
+
+            local attempt=1
+            local max_attempts=3
+            while [[ ${attempt} -le ${max_attempts} ]]; do
+              if docker buildx imagetools create "${args[@]}"; then
+                return 0
+              fi
+              if [[ ${attempt} -eq ${max_attempts} ]]; then
+                echo "Warning: failed to push tags for ${prefix} after ${max_attempts} attempts" >&2
+                return 0
+              fi
+              echo "Retrying push for ${prefix} (attempt ${attempt})" >&2
+              sleep $((attempt * 10))
+              attempt=$((attempt + 1))
+            done
+          }
+
+          push_tags "ghcr.io/${SLUG}" "${PUSH_GHCR}" "${GHCR_TAGS[@]}"
+
+          if [[ -n "${SLUG_QUAY}" ]]; then
+            push_tags "quay.io/${SLUG_QUAY}" "${PUSH_QUAY}" "${UNIQUE_TAGS[@]}"
+          fi
+
+          if [[ -n "${SLUG_DOCKER}" ]]; then
+            push_tags "docker.io/${SLUG_DOCKER}" "${PUSH_DOCKER_HUB}" "${UNIQUE_TAGS[@]}"
+          fi
+
+      - name: Cleanup temporary tags
+        run: |
+          docker buildx imagetools rm "${TMP_REF_AMD64}" || true
+          docker buildx imagetools rm "${TMP_REF_ARM64}" || true

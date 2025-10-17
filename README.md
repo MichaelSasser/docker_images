@@ -5,24 +5,30 @@
 # Docker images
 
 The images created by this repository are intended to be used with
-[act](https://github.com/nektos/act), to Run your GitHub Actions "locally".
+[act](https://github.com/nektos/act), to Run your GitHub Actions locally or in
+a CI environment like the one Gitea and Forgejo provide.
 
 > [!IMPORTANT]
 > This is a hard fork of
 > [catthehacker/docker_images](https://github.com/catthehacker/docker_images)
 > which at the time of forking seemed to be abandoned. This fork is not
-> intended to be a (drop-in) replacement but rather a (temporary?)
-> continuation of the original project with changes. Instead of having
-> multiple image variants for different use cases, this fork only has
-> a one, with a default set of tools and packages that
-> are used to myself on my Forgejo instance.
+> intended to be a (drop-in) replacement but rather a continuation of the
+> original project with changes that are useful to me.
 
 ## The Default Image
 
 This image is based on the "Custom", "Rust" and "JavaScript" image from the
 original project. Many of the JavaScript tools have been removed and some
-Python and Rust tools have been added. The latest image is now based on
+Python and Rust tools have been added. The images are based on
 Ubuntu 24.04 with Node 22 as the default.
+
+I initially kept the complex build system from the original project, because
+changing it meant a lot of work, with no benefit to the resulting images.
+Due to recent issues and timeouts from the external repositories I decided
+to put in that work. I first simplified the build system using docker buildx,
+just to make it potentially even more complex in the end.
+The advantages we get from this are natively built multi-arch images. Meaning
+no qemu emulation layer anymore and quicker turnaround times for builds.
 
 ### Images
 
