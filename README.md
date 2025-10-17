@@ -1,6 +1,7 @@
-[![Scheduled build (Ubuntu)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-ubuntu.yml/badge.svg?event=schedule)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-ubuntu.yml)
-[![On-demand build (Ubuntu)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-ubuntu.yml/badge.svg?event=workflow_dispatch)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-ubuntu.yml)
-[![Linter](https://github.com/MichaelSasser/docker_images/actions/workflows/lint.yml/badge.svg)](https://github.com/MichaelSasser/docker_images/actions/workflows/lint.yml)
+[![Scheduled build](https://github.com/MichaelSasser/docker_images/actions/workflows/build-default.yml/badge.svg?event=schedule)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-default.yml)
+[![On-demand build](https://github.com/MichaelSasser/docker_images/actions/workflows/build-default.yml/badge.svg?event=workflow_dispatch)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-default.yml)
+
+<!-- [![Linter](https://github.com/MichaelSasser/docker_images/actions/workflows/lint.yml/badge.svg)](https://github.com/MichaelSasser/docker_images/actions/workflows/lint.yml) -->
 
 # Docker images
 
