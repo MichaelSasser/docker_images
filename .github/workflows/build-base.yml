@@ -465,25 +465,26 @@ jobs:
 
       - name: Write base metadata
         run: |
-          python - <<'PY'
-            import json
-            import os
+          set -Eeuo pipefail
 
-            tags = os.environ["TAG_SUFFIXES"].split()
-
-            data = {
-                "tag": os.environ["TAG"],
-                "part_tag": os.environ["PART_TAG"],
-                "release_tag": os.environ["RELEASE_TAG"],
-                "digest": os.environ["PRIMARY_DIGEST"],
-                "ref": os.environ["PRIMARY_REF"],
-                "is_release": os.environ["IS_RELEASE"] == "1",
-                "tags": tags
-            }
-
-            with open("base-metadata.json", "w", encoding="utf-8") as fh:
-                json.dump(data, fh)
-          PY
+          tags_json=$(printf '%s\n' "${TAG_SUFFIXES}" | tr ' ' '\n' | jq -R . | jq -s 'map(select(length > 0))')
+          jq -n \
+            --arg tag "${TAG}" \
+            --arg part_tag "${PART_TAG}" \
+            --arg release_tag "${RELEASE_TAG}" \
+            --arg digest "${PRIMARY_DIGEST}" \
+            --arg ref "${PRIMARY_REF}" \
+            --arg is_release "${IS_RELEASE}" \
+            --argjson tags "${tags_json}" \
+            '{
+              tag: $tag,
+              part_tag: $part_tag,
+              release_tag: $release_tag,
+              digest: $digest,
+              ref: $ref,
+              is_release: ($is_release == "1"),
+              tags: $tags
+            }' > base-metadata.json
         env:
           TAG: ${{ env.TAG }}
           PART_TAG: ${{ env.PART_TAG }}

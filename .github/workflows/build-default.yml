@@ -74,27 +74,20 @@ jobs:
           TAG="${LATEST_TAG}"
 
           if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
-            python - <<'PY' > metadata.env
-              import json
-              import os
+            base_json='base-metadata/base-metadata.json'
+            tag_value=$(jq -r '.tag' "${base_json}")
+            PART_TAG=$(jq -r '.part_tag' "${base_json}")
+            IS_RELEASE=$(jq -r 'if .is_release then "1" else "0" end' "${base_json}")
+            BASE_DIGEST=$(jq -r '.digest // ""' "${base_json}")
 
-              with open('base-metadata/base-metadata.json', 'r', encoding='utf-8') as fh:
-                  data = json.load(fh)
-
-              slug = os.environ['SLUG']
-              tag = data['tag']
-              part_tag = data['part_tag']
-
-              print(f"PART_TAG={part_tag}")
-              print(f"IS_RELEASE={'1' if data['is_release'] else '0'}")
-              print(f"BASE_DIGEST={data['digest']}")
-              print(f"BASE_SOURCE=ghcr.io/{slug}:act-{tag}-{part_tag}")
-              print(f"BASE_TAG=act-{tag}-{part_tag}")
-            PY
-
-            source metadata.env
+            BASE_TAG="act-${tag_value}-${PART_TAG}"
+            BASE_SOURCE="ghcr.io/${SLUG}:act-${tag_value}-${PART_TAG}"
             FROM_TAG="${BASE_TAG}"
-            BASE_REF="${BASE_SOURCE}@${BASE_DIGEST}"
+            if [[ -n "${BASE_DIGEST}" ]]; then
+              BASE_REF="${BASE_SOURCE}@${BASE_DIGEST}"
+            else
+              BASE_REF=""
+            fi
           else
             PART_TAG=dev
             IS_RELEASE=0
@@ -274,26 +267,20 @@ jobs:
           TAG="${LATEST_TAG}"
 
           if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
-            python - <<'PY' > metadata.env
-              import json
-              import os
+            base_json='base-metadata/base-metadata.json'
+            tag_value=$(jq -r '.tag' "${base_json}")
+            PART_TAG=$(jq -r '.part_tag' "${base_json}")
+            IS_RELEASE=$(jq -r 'if .is_release then "1" else "0" end' "${base_json}")
+            BASE_DIGEST=$(jq -r '.digest // ""' "${base_json}")
 
-              with open('base-metadata/base-metadata.json', 'r', encoding='utf-8') as fh:
-                data = json.load(fh)
-
-              slug = os.environ['SLUG']
-              tag = data['tag']
-              part_tag = data['part_tag']
-
-              print(f"PART_TAG={part_tag}")
-              print(f"IS_RELEASE={'1' if data['is_release'] else '0'}")
-              print(f"BASE_DIGEST={data['digest']}")
-              print(f"BASE_SOURCE=ghcr.io/{slug}:act-{tag}-{part_tag}")
-              print(f"BASE_TAG=act-{tag}-{part_tag}")
-            PY
-            source metadata.env
+            BASE_TAG="act-${tag_value}-${PART_TAG}"
+            BASE_SOURCE="ghcr.io/${SLUG}:act-${tag_value}-${PART_TAG}"
             FROM_TAG="${BASE_TAG}"
-            BASE_REF="${BASE_SOURCE}@${BASE_DIGEST}"
+            if [[ -n "${BASE_DIGEST}" ]]; then
+              BASE_REF="${BASE_SOURCE}@${BASE_DIGEST}"
+            else
+              BASE_REF=""
+            fi
           else
             PART_TAG=dev
             IS_RELEASE=0
