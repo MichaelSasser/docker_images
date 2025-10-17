@@ -13,17 +13,16 @@ The images created by this repository are intended to be used with
 > which at the time of forking seemed to be abandoned. This fork is not
 > intended to be a (drop-in) replacement but rather a (temporary?)
 > continuation of the original project with changes. Instead of having
-> multiple image variants for different use cases, this fork will only have
-> a single variant for now, with a default set of tools and packages that
-> are useful to me and my workflows on my Forgejo instance.
+> multiple image variants for different use cases, this fork only has
+> a one, with a default set of tools and packages that
+> are used to myself on my Forgejo instance.
 
-## The Default Images
+## The Default Image
 
-At present, this is the only image available. It is based on the Custom,
-Rust and JavaScript image from the original project with some modifications.
-Many of the available JavaScript tools have been removed and some Python
-tools have been added. The latest image is now based on Ubuntu 24.04
-with Node 22 as the default.
+This image is based on the "Custom", "Rust" and "JavaScript" image from the
+original project. Many of the JavaScript tools have been removed and some
+Python and Rust tools have been added. The latest image is now based on
+Ubuntu 24.04 with Node 22 as the default.
 
 ### Images
 
@@ -35,21 +34,26 @@ with Node 22 as the default.
 
 - [default-24.04-dev](ghcr.io/MichaelSasser/ubuntu:default-24.04-dev), [default-latest-dev](ghcr.io/MichaelSasser/ubuntu:default-latest-dev)
 
-### Software
+### Tools
 
-We tries as much as possible to keep the software in the images up to date.
-Therefore we either often get the latest stable version as binary from the
-repo, add custom repositories or use the system package manager to install
-them or build them from source. The following is a list of the software we
-include in the image.
+I am trying to keep the tools (in the images) up to date. Due to
+free account limitations, I need to keep the build time relatively short (<5h)
+and the size small (only a couple of Gigabytes). To find this balance, I use:
+
+- The latest stable versions as binaries from the original repositories
+- Custom package manager repositories
+- System package manager
+- Building from source
+
+Below are lists of tools included in the images.
 
 > [!NOTE]
 > Note, this list may not contain all software included in the image, and the
-> list may change over time.
+> may change over time do to varying requirements.
 
 #### Python
 
-- System Python: `python3` with `pip3` installed from the system package
+- System Python: `python3` with `pip3` installed with the system's package
   manager
   - Installed using `pip`: `toml`, `ansible-lint`, `ansible-navigator`,
     `ansible-builder`, `yamllint`, `PyYAML`
@@ -57,8 +61,9 @@ include in the image.
     `python3-socks`, `python3-docker`, `python3-dockerpty`,
     `python3-ansible-runner`
 - `uv`:
-  - Installed versions: `3.11`, `3.12` and `3.13`
-  - Tools: `poetry`, `git-cliff` (deprecated), `pre-commit`, and `tox`
+  - Installed versions: `3.12`, `3.13` and `3.14`
+  - Tools: `poetry` (deprecated), `git-cliff` (deprecated), `pre-commit`,
+    and `tox`
 
 #### Rust
 
@@ -77,25 +82,25 @@ include in the image.
 
 #### Go
 
-- `go`
+- `go` ("Golang")
 
 #### C/C++ (or build tools in general)
 
 - System's package manager: `build-essential` `llvm` `clang` `libssl-dev`, `cmake`
-- Repo release: `mold`
+- Repo release: `mold` (a modern linker)
 
 #### Additional Tools
 
-- gh (cli/cli)
-- jq (jqlang/jq)
-- yq (mikefarah/yq)
-- typst-cli (installed via `binstall`)
-- tea (gitea/tea)
-- taplo (tamasfe/taplo)
+- gh (cli/cli) - The GitHub CLI tool
+- jq (jqlang/jq) - Command-line JSON processor
+- yq (mikefarah/yq) - Command-line YAML processor
+- typst-cli (installed via `binstall`) - A modern typesetting system
+- tea (gitea/tea) - A command line interface for Gitea/Forgejo
+- taplo (tamasfe/taplo) - A fast TOML toolkit
 
 ## License
 
-Copyright &copy; 2024 Michael Sasser <Info@MichaelSasser.org> \
+Copyright &copy; 2024 Michael Sasser <info@michaelsasser.org> \
 Copyright &copy; 2021 catthehacker
 
 Released under the [MIT license](./LICENSE).
