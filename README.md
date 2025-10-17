@@ -42,6 +42,10 @@ Ubuntu 24.04 with Node 22 as the default.
 
 ### Images
 
+I also tag the images with timestamps, you can find them
+[here](https://github.com/MichaelSasser/docker_images/pkgs/container/ubuntu).
+You can find the "latest" images below.
+
 #### Stable
 
 - [default-24.04](ghcr.io/MichaelSasser/ubuntu:default-24.04), [default-latest](ghcr.io/MichaelSasser/ubuntu:default-latest)
