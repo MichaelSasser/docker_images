@@ -28,7 +28,6 @@ jobs:
     name: Build base (amd64)
     runs-on: ubuntu-latest
     env:
-      TARGET_TAG: ${{ env.LATEST_TAG }}
       ARCH: amd64
       PLATFORM: linux/amd64
     outputs:
@@ -53,9 +52,9 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          TAG="${TARGET_TAG}"
+          TAG="${LATEST_TAG}"
 
-          if [[ "${{ env.LATEST_TAG }}" == "${TAG}" ]]; then
+          if [[ "${LATEST_TAG}" == "${TAG}" ]]; then
             RELEASE_TAG=$(lsb_release -rs)
           else
             RELEASE_TAG="${TAG}"
@@ -167,7 +166,6 @@ jobs:
     name: Build base (arm64)
     runs-on: ubuntu-24.04-arm
     env:
-      TARGET_TAG: ${{ env.LATEST_TAG }}
       ARCH: arm64
       PLATFORM: linux/arm64
     outputs:
@@ -192,9 +190,9 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          TAG="${TARGET_TAG}"
+          TAG="${LATEST_TAG}"
 
-          if [[ "${{ env.LATEST_TAG }}" == "${TAG}" ]]; then
+          if [[ "${LATEST_TAG}" == "${TAG}" ]]; then
             RELEASE_TAG=$(lsb_release -rs)
           else
             RELEASE_TAG="${TAG}"

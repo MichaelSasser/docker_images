@@ -35,7 +35,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))
     env:
-      TARGET_TAG: ${{ env.LATEST_TAG }}
       ARCH: amd64
       PLATFORM: linux/amd64
     outputs:
@@ -72,7 +71,7 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          TAG="${TARGET_TAG}"
+          TAG="${LATEST_TAG}"
 
           if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
             python - <<'PY' > metadata.env
@@ -236,7 +235,6 @@ jobs:
     runs-on: ubuntu-24.04-arm
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))
     env:
-      TARGET_TAG: ${{ env.LATEST_TAG }}
       ARCH: arm64
       PLATFORM: linux/arm64
     outputs:
@@ -273,7 +271,7 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          TAG="${TARGET_TAG}"
+          TAG="${LATEST_TAG}"
 
           if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
             python - <<'PY' > metadata.env
