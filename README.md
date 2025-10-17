@@ -25,10 +25,11 @@ Ubuntu 24.04 with Node 22 as the default.
 I initially kept the complex build system from the original project, because
 changing it meant a lot of work, with no benefit to the resulting images.
 Due to recent issues and timeouts from the external repositories I decided
-to put in that work. I first simplified the build system using docker buildx,
-just to make it potentially even more complex in the end.
+to put in that work. I first simplified the build system by replacing most of
+it with docker buildx, just to make it potentially even more complex in the end.
 The advantages we get from this are natively built multi-arch images. Meaning
-no qemu emulation layer anymore and quicker turnaround times for builds.
+no qemu emulation layer anymore and therefore quicker turnaround times for
+builds.
 
 ### Images
 
@@ -97,17 +98,17 @@ Below are lists of tools included in the images.
 
 #### Additional Tools
 
-- gh (cli/cli) - The GitHub CLI tool
-- jq (jqlang/jq) - Command-line JSON processor
-- yq (mikefarah/yq) - Command-line YAML processor
-- typst-cli (installed via `binstall`) - A modern typesetting system
-- tea (gitea/tea) - A command line interface for Gitea/Forgejo
-- taplo (tamasfe/taplo) - A fast TOML toolkit
+- [gh](https://github.com/cli/cli) - The GitHub CLI tool
+- [jq](https://github.com/jqlang/jq) - Command-line JSON processor
+- [yq](https://github.com/mikefarah/yq) - Command-line YAML processor
+- [typst-cli](https://github.com/typst/typst/tree/main/crates/typst-cli) (installed via `binstall`) - A modern typesetting system
+- [tea](https://github.com/gitea/tea) - A command line interface for Gitea/Forgejo
+- [taplo](https://github.com/tamasfe/taplo) - A fast TOML toolkit
 
 ## License
 
 Copyright &copy; 2024 Michael Sasser <info@michaelsasser.org> \
-Copyright &copy; 2021 catthehacker
+Copyright &copy; 2021 [catthehacker](https://github.com/catthehacker)
 
 Released under the [MIT license](./LICENSE).
 
