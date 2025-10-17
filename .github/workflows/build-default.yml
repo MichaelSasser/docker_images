@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))
     env:
-      TAG: ${{ env.LATEST_TAG }}
+      TARGET_TAG: ${{ env.LATEST_TAG }}
       ARCH: amd64
       PLATFORM: linux/amd64
     outputs:
@@ -69,12 +69,10 @@ jobs:
 
       - name: Prepare metadata
         id: meta
-        env:
-          TAG: ${{ env.LATEST_TAG }}
         run: |
           set -Eeuo pipefail
 
-          TAG="${TAG}"
+          TAG="${TARGET_TAG}"
 
           if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
             python - <<'PY' > metadata.env
@@ -131,6 +129,7 @@ jobs:
           fi
           echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
           echo "BUILD_TAG=default-${TAG}" >> $GITHUB_ENV
+          echo "TAG=${TAG}" >> $GITHUB_ENV
           echo "TMP_TAG=${TMP_TAG}" >> $GITHUB_ENV
           echo "TMP_REF=${TMP_REF}" >> $GITHUB_ENV
           echo "BASE_SOURCE=${BASE_SOURCE}" >> $GITHUB_OUTPUT
@@ -170,14 +169,6 @@ jobs:
       - name: Finalize metadata
         if: env.SHOULD_PUSH == '1'
         id: finalize
-        env:
-          TAG: ${{ env.TAG }}
-          PART_TAG: ${{ env.PART_TAG }}
-          IS_RELEASE: ${{ env.IS_RELEASE }}
-          BASE_TAG: ${{ env.BASE_TAG }}
-          FROM_TAG: ${{ env.FROM_TAG }}
-          BASE_REF: ${{ env.BASE_REF }}
-          BASE_DIGEST: ${{ env.BASE_DIGEST }}
         run: |
           set -Eeuo pipefail
           if [[ -z "${BASE_DIGEST}" ]]; then
@@ -201,7 +192,7 @@ jobs:
           file: ./linux/ubuntu/default/Dockerfile
           platforms: ${{ env.PLATFORM }}
           pull: true
-          push: true
+          push: ${{ env.SHOULD_PUSH == '1' }}
           provenance: false
           sbom: false
           tags: ${{ env.TMP_REF }}
@@ -245,7 +236,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && contains(fromJson('[''schedule'',''workflow_dispatch'']'), github.event.workflow_run.event))
     env:
-      TAG: ${{ env.LATEST_TAG }}
+      TARGET_TAG: ${{ env.LATEST_TAG }}
       ARCH: arm64
       PLATFORM: linux/arm64
     outputs:
@@ -279,12 +270,10 @@ jobs:
 
       - name: Prepare metadata
         id: meta
-        env:
-          TAG: ${{ env.LATEST_TAG }}
         run: |
           set -Eeuo pipefail
 
-          TAG="${TAG}"
+          TAG="${TARGET_TAG}"
 
           if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
             python - <<'PY' > metadata.env
@@ -332,6 +321,7 @@ jobs:
           fi
           echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
           echo "BUILD_TAG=default-${TAG}" >> $GITHUB_ENV
+          echo "TAG=${TAG}" >> $GITHUB_ENV
           echo "TMP_TAG=${TMP_TAG}" >> $GITHUB_ENV
           echo "TMP_REF=${TMP_REF}" >> $GITHUB_ENV
           echo "BASE_SOURCE=${BASE_SOURCE}" >> $GITHUB_OUTPUT
@@ -377,15 +367,8 @@ jobs:
           echo "BASE_REF=${BASE_SOURCE}@${DIGEST}" >> $GITHUB_ENV
 
       - name: Finalize metadata
+        if: env.SHOULD_PUSH == '1'
         id: finalize
-        env:
-          TAG: ${{ env.TAG }}
-          PART_TAG: ${{ env.PART_TAG }}
-          IS_RELEASE: ${{ env.IS_RELEASE }}
-          BASE_TAG: ${{ env.BASE_TAG }}
-          FROM_TAG: ${{ env.FROM_TAG }}
-          BASE_REF: ${{ env.BASE_REF }}
-          BASE_DIGEST: ${{ env.BASE_DIGEST }}
         run: |
           set -Eeuo pipefail
           if [[ -z "${BASE_DIGEST}" ]]; then
@@ -401,6 +384,7 @@ jobs:
           echo "base_digest=${BASE_DIGEST}" >> $GITHUB_OUTPUT
 
       - name: Build default image
+        if: env.SHOULD_PUSH == '1'
         id: build
         uses: docker/build-push-action@v6
         with:
@@ -408,7 +392,7 @@ jobs:
           file: ./linux/ubuntu/default/Dockerfile
           platforms: ${{ env.PLATFORM }}
           pull: true
-          push: true
+          push: ${{ env.SHOULD_PUSH == '1' }}
           provenance: false
           sbom: false
           tags: ${{ env.TMP_REF }}
@@ -433,6 +417,7 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }},mode=max
 
       - name: Record outputs
+        if: env.SHOULD_PUSH == '1'
         id: record
         env:
           TMP_REF: ${{ env.TMP_REF }}
@@ -464,7 +449,6 @@ jobs:
       TMP_REF_ARM64: ${{ needs.default-arm64.outputs.tmp_ref }}
       TMP_TAG_ARM64: ${{ needs.default-arm64.outputs.tmp_tag }}
       PRIMARY_TAG: default-${{ needs.default-amd64.outputs.tag }}-${{ needs.default-amd64.outputs.part_tag }}
-      SHOULD_PUSH: ${{ (env.PUSH_GHCR != '' || env.PUSH_QUAY != '' || env.PUSH_DOCKER_HUB != '') && '1' || '0' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -475,28 +459,27 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - if: env.PUSH_GHCR && env.SHOULD_PUSH == '1'
+      - if: env.PUSH_GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: '${{ github.actor }}'
           password: '${{ github.token }}'
 
-      - if: env.PUSH_QUAY && env.SHOULD_PUSH == '1'
+      - if: env.PUSH_QUAY
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: '${{ secrets.QUAY_USER }}'
           password: '${{ secrets.QUAY_TOKEN }}'
 
-      - if: env.PUSH_DOCKER_HUB && env.SHOULD_PUSH == '1'
+      - if: env.PUSH_DOCKER_HUB
         uses: docker/login-action@v3
         with:
           username: '${{ secrets.DOCKER_USER }}'
           password: '${{ secrets.DOCKER_TOKEN }}'
 
       - name: Create multi-arch manifest
-        if: env.SHOULD_PUSH == '1'
         run: |
           set -Eeuo pipefail
           PRIMARY_REF="ghcr.io/${SLUG}:${PRIMARY_TAG}"
@@ -504,7 +487,6 @@ jobs:
           echo "PRIMARY_REF=${PRIMARY_REF}" >> $GITHUB_ENV
 
       - name: Inspect manifest digest
-        if: env.SHOULD_PUSH == '1'
         run: |
           set -Eeuo pipefail
           DIGEST=$(docker buildx imagetools inspect "${PRIMARY_REF}" | awk '/Digest:/ {print $2; exit}')
@@ -512,7 +494,6 @@ jobs:
           echo "PRIMARY_REF_DIGEST=${PRIMARY_REF}@${DIGEST}" >> $GITHUB_ENV
 
       - name: Tag and push manifests
-        if: env.SHOULD_PUSH == '1'
         env:
           TAG: ${{ env.TAG }}
           PART_TAG: ${{ env.PART_TAG }}
@@ -596,7 +577,6 @@ jobs:
           fi
 
       - name: Cleanup temporary tags
-        if: env.SHOULD_PUSH == '1'
         run: |
           docker buildx imagetools rm "${TMP_REF_AMD64}" || true
           docker buildx imagetools rm "${TMP_REF_ARM64}" || true
