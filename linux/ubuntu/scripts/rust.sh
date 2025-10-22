@@ -11,7 +11,8 @@ RUSTUP_HOME=/usr/share/rust/.rustup
 CARGO_HOME=/usr/share/rust/.cargo
 EOF
 
-. /etc/environment
+RUSTUP_HOME=/usr/share/rust/.rustup
+CARGO_HOME=/usr/share/rust/.cargo
 
 echo '::group::Installing Dependencies'
 apt-get -yq update
@@ -19,6 +20,8 @@ apt-get -yq install build-essential llvm clang libssl-dev
 echo '::endgroup::'
 
 echo '::group::Installing Rust'
+mkdir -p "${RUSTUP_HOME}"
+mkdir -p "${CARGO_HOME}"
 curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://sh.rustup.rs | sh -s -- -y --default-toolchain=stable --profile=minimal
 echo '::endgroup::'
 
