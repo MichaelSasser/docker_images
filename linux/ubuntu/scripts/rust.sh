@@ -24,9 +24,12 @@ mkdir -p "${CARGO_HOME}"
 
 curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://sh.rustup.rs |
   RUSTUP_HOME="${RUSTUP_HOME}" CARGO_HOME="${CARGO_HOME}" sh -s -- -y --default-toolchain=stable --profile=minimal
-echo '::endgroup::'
 
 source "${CARGO_HOME}/env"
+. /etc/environment
+ln -sf "${CARGO_HOME}" /root/.cargo
+ln -sf "${RUSTUP_HOME}" /root/.rustup
+echo '::endgroup::'
 
 echo '::group::Installing Toolchains and Components'
 rustup toolchain install nightly
@@ -68,8 +71,6 @@ rm -rf "${CARGO_HOME}/registry/*"
 sed "s|PATH=|PATH=${CARGO_HOME}/bin:|g" -i /etc/environment
 
 cd /root
-ln -sf "${CARGO_HOME}" .cargo
-ln -sf "${RUSTUP_HOME}" .rustup
 
 echo '::group::Version Rustup'
 rustup -V
