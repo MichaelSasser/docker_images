@@ -45,9 +45,9 @@ jobs:
       from_tag: ${{ steps.finalize.outputs.from_tag }}
       base_ref: ${{ steps.finalize.outputs.base_ref }}
       base_digest: ${{ steps.finalize.outputs.base_digest }}
-      tmp_ref: ${{ steps.record.outputs.tmp_ref }}
-      tmp_tag: ${{ steps.record.outputs.tmp_tag }}
-      digest: ${{ steps.record.outputs.digest }}
+      tmp_ref: ${{ steps.promote.outputs.final_tag }}
+      tmp_tag: ${{ steps.promote.outputs.final_tag }}
+      digest: ${{ steps.promote.outputs.final_digest }}
     steps:
       - uses: actions/checkout@v5
 
@@ -208,20 +208,31 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }}
           cache-to: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }},mode=max
 
-      - name: Record outputs
+      - name: Promote environment metadata
         if: env.SHOULD_PUSH == '1'
-        id: record
+        id: promote
         env:
           TMP_REF: ${{ env.TMP_REF }}
-          TMP_TAG: ${{ env.TMP_TAG }}
-          DIGEST: ${{ steps.build.outputs.digest }}
-          ARCH: ${{ env.ARCH }}
+          TMP_DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           set -Eeuo pipefail
-          echo "tmp_ref=${TMP_REF}" >> $GITHUB_OUTPUT
-          echo "tmp_tag=${TMP_TAG}" >> $GITHUB_OUTPUT
-          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
-          echo "arch=${ARCH}" >> $GITHUB_OUTPUT
+          TMP_IMAGE="${TMP_REF}@${TMP_DIGEST}"
+          docker pull "${TMP_IMAGE}"
+          cid=$(docker create "${TMP_IMAGE}")
+          docker cp "${cid}:/etc/environment" env.list
+          args=()
+          while IFS= read -r line; do
+            [[ -z "$line" || "$line" =~ ^# ]] && continue
+            args+=( --change "ENV $line" )
+          done < env.list
+          docker commit "${args[@]}" "${cid}" "${TMP_REF}"
+          docker rm "${cid}"
+          rm env.list
+          docker push "${TMP_REF}"
+          FINAL_DIGEST=$(docker buildx imagetools inspect "${TMP_REF}" | awk '/Digest:/ {print $2; exit}')
+          printf 'final_tag=%s\n' "${TMP_REF}" >> "$GITHUB_OUTPUT"
+          printf 'final_digest=%s\n' "${FINAL_DIGEST}" >> "$GITHUB_OUTPUT"
+          printf 'final_ref=%s@%s\n' "${TMP_REF}" "${FINAL_DIGEST}" >> "$GITHUB_OUTPUT"
 
   default-arm64:
     name: Build default (arm64)
@@ -238,9 +249,9 @@ jobs:
       from_tag: ${{ steps.finalize.outputs.from_tag }}
       base_ref: ${{ steps.finalize.outputs.base_ref }}
       base_digest: ${{ steps.finalize.outputs.base_digest }}
-      tmp_ref: ${{ steps.record.outputs.tmp_ref }}
-      tmp_tag: ${{ steps.record.outputs.tmp_tag }}
-      digest: ${{ steps.record.outputs.digest }}
+      tmp_ref: ${{ steps.promote.outputs.final_tag }}
+      tmp_tag: ${{ steps.promote.outputs.final_tag }}
+      digest: ${{ steps.promote.outputs.final_digest }}
     steps:
       - uses: actions/checkout@v5
 
@@ -401,20 +412,31 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }}
           cache-to: type=registry,ref=ghcr.io/${{ env.SLUG }}:cache-default-${{ env.ARCH }},mode=max
 
-      - name: Record outputs
+      - name: Promote environment metadata
         if: env.SHOULD_PUSH == '1'
-        id: record
+        id: promote
         env:
           TMP_REF: ${{ env.TMP_REF }}
-          TMP_TAG: ${{ env.TMP_TAG }}
-          DIGEST: ${{ steps.build.outputs.digest }}
-          ARCH: ${{ env.ARCH }}
+          TMP_DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           set -Eeuo pipefail
-          echo "tmp_ref=${TMP_REF}" >> $GITHUB_OUTPUT
-          echo "tmp_tag=${TMP_TAG}" >> $GITHUB_OUTPUT
-          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
-          echo "arch=${ARCH}" >> $GITHUB_OUTPUT
+          TMP_IMAGE="${TMP_REF}@${TMP_DIGEST}"
+          docker pull "${TMP_IMAGE}"
+          cid=$(docker create "${TMP_IMAGE}")
+          docker cp "${cid}:/etc/environment" env.list
+          args=()
+          while IFS= read -r line; do
+            [[ -z "$line" || "$line" =~ ^# ]] && continue
+            args+=( --change "ENV $line" )
+          done < env.list
+          docker commit "${args[@]}" "${cid}" "${TMP_REF}"
+          docker rm "${cid}"
+          rm env.list
+          docker push "${TMP_REF}"
+          FINAL_DIGEST=$(docker buildx imagetools inspect "${TMP_REF}" | awk '/Digest:/ {print $2; exit}')
+          printf 'final_tag=%s\n' "${TMP_REF}" >> "$GITHUB_OUTPUT"
+          printf 'final_digest=%s\n' "${FINAL_DIGEST}" >> "$GITHUB_OUTPUT"
+          printf 'final_ref=%s@%s\n' "${TMP_REF}" "${FINAL_DIGEST}" >> "$GITHUB_OUTPUT"
 
   default-merge:
     name: Publish default manifests ${{ needs.default-amd64.outputs.tag }}
