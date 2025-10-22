@@ -11,8 +11,7 @@ RUSTUP_HOME=/usr/share/rust/.rustup
 CARGO_HOME=/usr/share/rust/.cargo
 EOF
 
-RUSTUP_HOME=/usr/share/rust/.rustup
-CARGO_HOME=/usr/share/rust/.cargo
+. /etc/environment
 
 echo '::group::Installing Dependencies'
 apt-get -yq update
@@ -22,7 +21,9 @@ echo '::endgroup::'
 echo '::group::Installing Rust'
 mkdir -p "${RUSTUP_HOME}"
 mkdir -p "${CARGO_HOME}"
-curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://sh.rustup.rs | sh -s -- -y --default-toolchain=stable --profile=minimal
+
+curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://sh.rustup.rs |
+  RUSTUP_HOME="${RUSTUP_HOME}" CARGO_HOME="${CARGO_HOME}" sh -s -- -y --default-toolchain=stable --profile=minimal
 echo '::endgroup::'
 
 source "${CARGO_HOME}/env"
@@ -41,7 +42,8 @@ EOF
 
 . /etc/environment
 
-curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh |
+  RUSTUP_HOME="${RUSTUP_HOME}" CARGO_HOME="${CARGO_HOME}" bash
 cargo binstall -V || {
   echo 'Cargo Binstall installation failed'
   exit 1
