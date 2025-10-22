@@ -38,6 +38,8 @@ rustup component add --toolchain nightly rustfmt clippy rustc-codegen-cranelift-
 # rustup component add --toolchain beta rustfmt clippy
 echo '::endgroup::'
 
+sed "s|PATH=|PATH=${CARGO_HOME}/bin:${RUSTUP_HOME}/bin|g" -i /etc/environment
+
 echo '::group::Installing Cargo Binstall'
 cat >>/etc/environment <<EOF
 BINSTALL_MAXIMUM_RESOLUTION_TIMEOUT=60
@@ -67,8 +69,6 @@ echo '::endgroup::'
 
 # cleanup
 rm -rf "${CARGO_HOME}/registry/*"
-
-sed "s|PATH=|PATH=${CARGO_HOME}/bin:|g" -i /etc/environment
 
 cd /root
 
