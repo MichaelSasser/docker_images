@@ -33,7 +33,7 @@ echo '::endgroup::'
 #   echo '* hard stack 16384'
 # } >>/etc/security/limits.conf
 
-sed "s|PATH=|PATH=$(whoami)/.local/bin/:|g" -i /etc/environment
+sed "s|PATH=|PATH=/$(whoami)/.local/bin/:|g" -i /etc/environment
 
 . /etc/environment
 
