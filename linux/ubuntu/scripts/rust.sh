@@ -85,7 +85,7 @@ rustc -V
 echo '::endgroup::'
 
 echo '::group::Installing Mold Linker'
-MOLD_URL="$(curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://api.github.com/repos/rui314/mold/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"$(uname -m)\"))")"
+MOLD_URL="$(curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused https://api.github.com/repos/rui314/mold/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"$(uname -m)-linux\"))")"
 echo "Downloading Mold from: ${MOLD_URL}"
 mkdir -p "mold"
 curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused "${MOLD_URL}" | tar xz --strip-components=1 -C "mold"
