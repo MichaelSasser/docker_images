@@ -16,6 +16,10 @@ WORKDIR /tmp
 COPY ./linux/${DISTRO}/scripts /imagegeneration/installers
 RUN bash /imagegeneration/installers/${TYPE}.sh
 
+RUN for file in /root/.bashrc /root/.profile /etc/bash.bashrc /etc/profile; do \
+	echo '[ -f /etc/environment ] && source /etc/environment' >> "$file"; \
+	done
+
 # Metadata
 ARG BUILD_DATE
 ARG BUILD_TAG=${TYPE}
