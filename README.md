@@ -79,7 +79,7 @@ The lists below show most of the tools included in the image.
     `python3-socks`, `python3-docker`, `python3-dockerpty`,
     `python3-ansible-runner`
 - `uv`:
-  - Installed versions: `3.12`, `3.13` and `3.14`
+  - Installed versions: `3.13` and `3.14`
   - Tools: `pre-commit`,
     and `tox`
 
@@ -106,6 +106,14 @@ The lists below show most of the tools included in the image.
 
 - System's package manager: `build-essential` `llvm` `clang` `libssl-dev`, `cmake`
 - Repo release: `mold` (a modern linker)
+
+#### HashiCorp Stack
+
+- [terraform](https://www.terraform.io/)
+- [packer](https://www.packer.io/)
+- [vault](https://www.vaultproject.io/) + scripts: `vault-gen-certs` and `vault-setcap`
+- [consul](https://www.consul.io/)
+- [nomad](https://www.nomadproject.io/)
 
 #### Additional Tools
 

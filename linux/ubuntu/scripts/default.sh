@@ -18,6 +18,10 @@ apt-get install apt-utils
 bash -c "$(curl -sL https://raw.githubusercontent.com/ilikenwf/apt-fast/master/quick-install.sh)"
 echo '::endgroup::'
 
+echo '::group::Install Basic Packages'
+apt-get install -y tree
+echo '::endgroup::'
+
 # echo 'session required pam_limits.so' >>/etc/pam.d/common-session
 # echo 'session required pam_limits.so' >>/etc/pam.d/common-session-noninteractive
 # echo 'DefaultLimitNOFILE=65536' >>/etc/systemd/system.conf
@@ -71,26 +75,84 @@ done
 . /etc/environment
 
 #
-# Installing: tea
+# Installing: Hashicorp Stack
 #
-echo '::group::Installing tea'
-git clone https://gitea.com/gitea/tea.git
-cd tea
+echo '::group::Installing Hashicorp Stack'
+wget -O - https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+apt update
+apt install terraform consul nomad packer
 
-TEA_HASH="$(git rev-list --tags --max-count=1)"
-TEA_VERSION="$(git describe --tags "$TEA_HASH")"
-printf "Installing Gitea tea version: %s\n" "$TEA_VERSION"
+# Vault requires some manual steps
+apt-get download vault
+sudo dpkg --unpack vault*.deb
+sudo rm -f /var/lib/dpkg/info/vault.postinst
+sudo dpkg --configure vault
+sudo apt-get install -yf
+sudo rm -f vault*.deb
 
-git checkout "$TEA_HASH"
+mkdir --parents /opt/vault/tls
+mkdir --parents /opt/vault/data
+chown --recursive vault:vault /etc/vault.d
+chown --recursive vault:vault /opt/vault
+chmod 700 /opt/vault/tls
 
-go mod vendor
-make
-make install
+cat >/usr/bin/vault-gen-certs <<EOF
+#!/usr/bin/env bash
 
-# cleanup
-cd ..
-rm -rf tea
+openssl req \
+  -out /opt/vault/tls/tls.crt \
+  -new \
+  -keyout /opt/vault/tls/tls.key \
+  -newkey rsa:4096 \
+  -nodes \
+  -sha256 \
+  -x509 \
+  -subj "/O=HashiCorp/CN=Vault" \
+  -days 1095
+
+chmod 600 /opt/vault/tls/tls.crt /opt/vault/tls/tls.key
+EOF
+chmod +x /usr/bin/vault-gen-certs
+
+cat >/usr/bin/vault-setcap <<EOF
+#!/usr/bin/env bash
+
+setcap cap_ipc_lock=+ep /usr/bin/vault
+echo "Set capabilities for vault to allow locking memory and preventing swapping"
+EOF
+chmod +x /usr/bin/vault-setcap
 echo '::endgroup::'
+
+echo '::group::Hashicorp Stack Versions'
+terraform version
+consul version
+nomad version
+packer version
+vault version
+echo '::endgroup::'
+
+##
+## Installing: tea
+##
+#echo '::group::Installing tea'
+#git clone https://gitea.com/gitea/tea.git
+#cd tea
+#
+#TEA_HASH="$(git rev-list --tags --max-count=1)"
+#TEA_VERSION="$(git describe --tags "$TEA_HASH")"
+#printf "Installing Gitea tea version: %s\n" "$TEA_VERSION"
+#
+#git checkout "$TEA_HASH"
+#
+#go mod vendor
+#make
+#make install
+#
+## cleanup
+#cd ..
+#rm -rf tea
+#echo '::endgroup::'
 
 # #
 # # Installing: Hub
@@ -200,7 +262,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 PATH="$UV_INSTALL_DIR:$PATH"
 
-uv python install 3.12 3.13 3.14
+uv python install 3.13 3.14
 uv tool update-shell
 uv tool install --python-preference=managed pre-commit
 uv tool install --python-preference=managed tox
