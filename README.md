@@ -115,6 +115,7 @@ The lists below show most of the tools included in the image.
 - [typst-cli](https://github.com/typst/typst/tree/main/crates/typst-cli) (installed via `binstall`) - A modern typesetting system
 - [tea](https://github.com/gitea/tea) - A command line interface for Gitea/Forgejo
 - [taplo](https://github.com/tamasfe/taplo) - A fast TOML toolkit
+- [nix](https://github.com/NixOS/nix) - A purely functional package manager
 
 ## License
 

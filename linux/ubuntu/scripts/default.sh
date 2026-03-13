@@ -71,6 +71,61 @@ done
 . /etc/environment
 
 #
+# Nix Package Manager
+#
+echo "::group::Installing Nix Package Manager"
+# Configure Nix
+
+mkdir -m 0755 -p /etc/nix
+mkdir -m 0755 -p /var/tmp/nix-build
+mkdir -m 0755 /nix
+
+cat >>/etc/nix/nix.conf <<EOF
+  max-jobs = auto
+  sandbox = false
+  build-dir = /var/tmp/nix-build
+  experimental-features = nix-command flakes
+  show-trace = true
+  ssl-cert-file = /etc/ssl/cert.pem
+  trusted-users = root
+  always-allow-substitutes = true
+  build-users-group =
+EOF
+
+# {
+#   NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+#   SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+# } >>/etc/environment
+
+# sed "s|PATH=|PATH=/root/.local/bin/:|g" -i /etc/environment
+
+curl_retries=5
+while ! curl -sS --proto '=https' --tlsv1.2 -v --fail -L https://nixos.org/nix/install -o "nix-install"; do
+  sleep 1
+  ((curl_retries--))
+  if [[ $curl_retries -le 0 ]]; then
+    echo "curl retries failed" >&2
+    exit 1
+  fi
+done
+
+sh nix-install \
+  --no-daemon \
+  --no-channel-add \
+  --nix-extra-conf-file /etc/nix/nix.conf \
+  --yes
+
+nix-channel --list
+nix-channel --update
+nix-shell -p hello --run hello
+nix-env --query
+
+# Cleanup Nix install files
+rm -f nix-install
+
+echo '::endgroup::'
+
+#
 # Installing: tea
 #
 echo '::group::Installing tea'
