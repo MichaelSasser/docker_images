@@ -15,7 +15,7 @@ EOF
 
 echo '::group::Installing Dependencies'
 apt-get -yq update
-apt-get -yq install build-essential llvm clang libssl-dev
+apt-get -yq install --no-install-recommends build-essential llvm clang libssl-dev
 echo '::endgroup::'
 
 echo '::group::Installing Rust'
@@ -68,7 +68,7 @@ chmod -R 777 "$(dirname "${RUSTUP_HOME}")"
 echo '::endgroup::'
 
 # cleanup
-rm -rf "${CARGO_HOME}/registry/*"
+rm -rf "${CARGO_HOME}/registry/*" "${CARGO_HOME}/.cargo_binstall" "${RUSTUP_HOME}/downloads" "${RUSTUP_HOME}/tmp"
 
 cd /root
 

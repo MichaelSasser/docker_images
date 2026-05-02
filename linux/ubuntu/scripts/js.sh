@@ -91,6 +91,8 @@ yarn -v
 echo '::endgroup::'
 
 echo '::group::Cleaning Up Image'
+npm cache clean --force
+rm -rf "$NVM_DIR/.cache"
 apt-get clean
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
 # remove npm config

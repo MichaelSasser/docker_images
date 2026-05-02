@@ -138,7 +138,7 @@ echo "::endgroup::"
 echo "::group::Installing Git"
 add-apt-repository ppa:git-core/ppa -y
 apt-get update
-apt-get install -y git
+apt-get install -y --no-install-recommends git
 
 git --version
 
@@ -148,7 +148,7 @@ echo "::endgroup::"
 echo "::group::Installing Git LFS"
 wget https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh -qO- | bash
 apt-get update
-apt-get install -y git-lfs
+apt-get install -y --no-install-recommends git-lfs
 echo "::endgroup::"
 
 LSB_OS_VERSION="${VERSION_ID//\./}"
@@ -228,7 +228,7 @@ echo '::endgroup::'
 # Additional Packages (from default.sh)
 #
 echo '::group::Install Basic Packages'
-apt-get install -y tree
+apt-get install -y --no-install-recommends tree
 echo '::endgroup::'
 
 #
@@ -271,7 +271,7 @@ echo '::group::Installing Hashicorp Stack'
 wget -O - https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
 apt update
-apt install terraform consul nomad packer
+apt install --no-install-recommends terraform consul nomad packer
 
 apt-get download vault
 sudo dpkg --unpack vault*.deb
@@ -344,7 +344,7 @@ echo '::endgroup::'
 # cmake (from default.sh)
 #
 echo '::group::Installing: cmake'
-apt-get install -y cmake
+apt-get install -y --no-install-recommends cmake
 echo '::endgroup::'
 
 #
@@ -353,7 +353,7 @@ echo '::endgroup::'
 echo "::group::Installing: Ansible"
 apt-get install software-properties-common
 add-apt-repository --yes --update ppa:ansible/ansible
-apt-get install \
+apt-get install -y --no-install-recommends \
   ansible \
   python3-openssl \
   python3-socks \
@@ -404,6 +404,7 @@ uv python install 3.13 3.14
 uv tool update-shell
 uv tool install --python-preference=managed pre-commit
 uv tool install --python-preference=managed tox
+uv cache clean
 echo '::endgroup::'
 
 #
@@ -411,6 +412,9 @@ echo '::endgroup::'
 #
 echo '::group::Cleaning Up Image'
 rm -rf "${CARGO_HOME}/registry/*"
+apt-get remove -y apt-fast aria2 || true
 apt-get clean
+rm -rf /imagegeneration
+rm -rf /usr/share/man/* /usr/share/doc/*
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
 echo '::endgroup::'
