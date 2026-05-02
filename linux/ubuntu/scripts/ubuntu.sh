@@ -1,13 +1,24 @@
 #!/bin/bash
 # shellcheck disable=SC2174
 
-set -Eeuxo pipefail
+set -Eeuo pipefail
 
 #
-# Installing ACT
+# APT Preparation (from default.sh)
 #
-echo '::group::Installing ACT'
-# Remove '"' so it can be sourced by sh/bash
+echo '::group::Preparing APT'
+echo 'APT::Acquire::Retries "10";' >/etc/apt/apt.conf.d/80-retries
+echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90assumeyes
+apt-get update
+apt-get install apt-utils
+
+bash -c "$(curl -sL https://raw.githubusercontent.com/ilikenwf/apt-fast/master/quick-install.sh)"
+echo '::endgroup::'
+
+#
+# Environment Setup (from act.sh)
+#
+echo '::group::Environment Setup'
 sed 's|"||g' -i "/etc/environment"
 
 . /etc/os-release
@@ -43,7 +54,12 @@ chown -R 1001:1000 "${ACT_TOOLSDIRECTORY}"
 
 mkdir -m 0777 -p /github
 chown -R 1001:1000 /github
+echo '::endgroup::'
 
+#
+# Core Packages (from act.sh)
+#
+echo "::group::Installing packages"
 packages=(
   ssh
   gawk
@@ -64,10 +80,6 @@ packages=(
   pipx
 )
 
-#
-# Installing Packages
-#
-echo "::group::Installing packages"
 apt-get -yq update
 apt-get -yq install --no-install-recommends --no-install-suggests "${packages[@]}"
 echo "::endgroup::"
@@ -75,7 +87,7 @@ echo "::endgroup::"
 ln -s "$(which python3)" "/usr/local/bin/python"
 
 #
-# Installing jq
+# Installing jq (from act.sh)
 #
 echo "::group::Installing jq"
 case "$(uname -m)" in
@@ -87,8 +99,6 @@ esac
 
 echo "Using '${JQ_BINARY_NAME}' as binary name to filter for downloading the jq binary."
 
-# Jeah, that's a little over the top, but we fail here often.
-# Just wanted to see if that works out now.
 JQ_URL=""
 retry_count=0
 max_retries=3
@@ -114,15 +124,6 @@ if [ -z "$JQ_URL" ]; then
   exit 1
 fi
 
-# # Shorter ans simpler version of the above, but with less insight about what's going on.
-#
-# JQ_URL=""
-# while [ -z "$JQ_URL" ] && ((retry++ < 3)); do
-#     JQ_URL=$(curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused "https://api.github.com/repos/jqlang/jq/releases/latest" | grep browser_download_url | cut -d '"' -f 4 | grep "${JQ_BINARY_NAME}" || true)
-#     sleep 1
-# done
-# [ -z "$JQ_URL" ] && { echo "Error: JQ URL not found" >&2; exit 1; }
-
 echo "Downloading jq from: ${JQ_URL}"
 
 curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused "${JQ_URL}" -o /usr/bin/jq
@@ -130,8 +131,9 @@ chown root:root /usr/bin/jq
 chmod 755 /usr/bin/jq
 echo jq version: "$(/usr/bin/jq --version)"
 echo "::endgroup::"
+
 #
-# installing Git
+# Installing Git + Git LFS (from act.sh)
 #
 echo "::group::Installing Git"
 add-apt-repository ppa:git-core/ppa -y
@@ -143,9 +145,6 @@ git --version
 git config --system --add safe.directory '*'
 echo "::endgroup::"
 
-#
-# Installing Git LFS
-#
 echo "::group::Installing Git LFS"
 wget https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh -qO- | bash
 apt-get update
@@ -161,7 +160,7 @@ wget -qO "/imagegeneration/LICENSE" "https://raw.githubusercontent.com/actions/v
 echo '::endgroup::'
 
 #
-# Creating SSH Known Hosts
+# SSH Known Hosts (from act.sh)
 #
 echo '::group::Creating SSH Known Hosts'
 echo 'Creating ~/.ssh and adding "github.com" and "ssh.dev.azure.com"'
@@ -173,7 +172,7 @@ mkdir -m 0700 -p ~/.ssh
 echo '::endgroup::'
 
 #
-# Installing docker, moby-cli, moby-buildx, moby-compose
+# Docker / moby (from act.sh)
 #
 echo '::group::Installing docker, moby-cli, moby-buildx, moby-compose'
 if [[ "${VERSION_ID}" == "18.04" ]]; then
@@ -193,11 +192,9 @@ docker buildx version
 echo '::endgroup::'
 
 #
-# Installing Node.JS and tools
+# Node.js (from act.sh)
 #
 echo '::group::Installing Node.JS and tools'
-# This installs the versions of Node in the base image. The versions are
-# defined in the Dockerfile.
 IFS=' ' read -r -a NODE <<<"$NODE_VERSION"
 for ver in "${NODE[@]}"; do
   printf "\n\t🐋 Installing Node.JS=%s 🐋\t\n" "${ver}"
@@ -207,7 +204,7 @@ for ver in "${NODE[@]}"; do
   wget "https://nodejs.org/download/release/latest-v${ver}.x/node-$VER-linux-$(node_arch).tar.xz" -O "node-$VER-linux-$(node_arch).tar.xz"
   tar -Jxf "node-$VER-linux-$(node_arch).tar.xz" --strip-components=1 -C "$NODEPATH"
   rm "node-$VER-linux-$(node_arch).tar.xz"
-  if [[ "${ver}" == "22" ]]; then # NOTE: make this version the default Version in the base image
+  if [[ "${ver}" == "22" ]]; then
     sed "s|^PATH=|PATH=$NODEPATH/bin:|mg" -i /etc/environment
   fi
   export PATH="$NODEPATH/bin:$PATH"
@@ -220,37 +217,200 @@ for ver in "${NODE[@]}"; do
 done
 echo '::endgroup::'
 
+#
+# yq (from act.sh)
+#
+echo "::group::Executing Imagegeneration Script yq.sh"
+"/imagegeneration/installers/yq.sh"
+echo '::endgroup::'
+
+#
+# Additional Packages (from default.sh)
+#
+echo '::group::Install Basic Packages'
+apt-get install -y tree
+echo '::endgroup::'
+
+#
+# PATH for local bin (from default.sh)
+#
+sed "s|PATH=|PATH=/root/.local/bin/:|g" -i /etc/environment
+
+. /etc/environment
+
+#
+# Sub-scripts (from default.sh)
+#
+echo "::group::Executing Sub-scripts"
 case "$(uname -m)" in
-'aarch64')
+'aarch64' | 'x86_64')
   scripts=(
-    yq
-  )
-  ;;
-'x86_64')
-  scripts=(
-    yq
-  )
-  ;;
-'armv7l')
-  scripts=(
-    yq
+    basic
+    gh
+    go
+    js
+    rust
   )
   ;;
 *) exit 1 ;;
 esac
 
-#
-# Running Imagegeneration Scripts
-#
 for SCRIPT in "${scripts[@]}"; do
-  echo "::group::Executing Imagegeneration Script ${SCRIPT}.sh"
+  echo "::group::Executing Script ${SCRIPT}.sh"
   "/imagegeneration/installers/${SCRIPT}.sh"
   echo '::endgroup::'
 done
-
-echo "::group::Cleaning Up Image"
-apt-get clean
-rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
 echo '::endgroup::'
 
+. /etc/environment
+
+#
+# HashiCorp Stack (from default.sh)
+#
+echo '::group::Installing Hashicorp Stack'
+wget -O - https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+apt update
+apt install terraform consul nomad packer
+
+apt-get download vault
+sudo dpkg --unpack vault*.deb
+sudo rm -f /var/lib/dpkg/info/vault.postinst
+sudo dpkg --configure vault
+sudo apt-get install -yf
+sudo rm -f vault*.deb
+
+mkdir --parents /opt/vault/tls
+mkdir --parents /opt/vault/data
+chown --recursive vault:vault /etc/vault.d
+chown --recursive vault:vault /opt/vault
+chmod 700 /opt/vault/tls
+
+cat >/usr/bin/vault-gen-certs <<EOF
+#!/usr/bin/env bash
+
+openssl req \
+  -out /opt/vault/tls/tls.crt \
+  -new \
+  -keyout /opt/vault/tls/tls.key \
+  -newkey rsa:4096 \
+  -nodes \
+  -sha256 \
+  -x509 \
+  -subj "/O=HashiCorp/CN=Vault" \
+  -days 1095
+
+chmod 600 /opt/vault/tls/tls.crt /opt/vault/tls/tls.key
+EOF
+chmod +x /usr/bin/vault-gen-certs
+
+cat >/usr/bin/vault-setcap <<EOF
+#!/usr/bin/env bash
+
+setcap cap_ipc_lock=+ep /usr/bin/vault
+echo "Set capabilities for vault to allow locking memory and preventing swapping"
+EOF
+chmod +x /usr/bin/vault-setcap
+echo '::endgroup::'
+
+echo '::group::Hashicorp Stack Versions'
+terraform version
+consul version
+nomad version
+packer version
+vault version
+echo '::endgroup::'
+
+#
+# taplo-cli (from default.sh)
+#
+echo '::group::Installing taplo-cli'
+TAPLO_URL="$(curl --proto '=https' --tlsv1.2 -sSf https://api.github.com/repos/tamasfe/taplo/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"linux-$(uname -m)\"))")"
+echo "Downloading taplo from: ${TAPLO_URL}"
+curl --proto '=https' --tlsv1.2 -sL "${TAPLO_URL}" | gunzip >/usr/bin/taplo
+chmod 755 /usr/bin/taplo
+chown root:root /usr/bin/taplo
+echo taplo version: "$(/usr/bin/taplo --version)"
+echo '::endgroup::'
+
+#
+# typst-cli (from default.sh)
+#
+echo '::group::Installing: typst-cli'
+cargo binstall -y --maximum-resolution-timeout 60 typst-cli
+echo '::endgroup::'
+
+#
+# cmake (from default.sh)
+#
+echo '::group::Installing: cmake'
+apt-get install -y cmake
+echo '::endgroup::'
+
+#
+# Ansible (from default.sh)
+#
+echo "::group::Installing: Ansible"
+apt-get install software-properties-common
+add-apt-repository --yes --update ppa:ansible/ansible
+apt-get install \
+  ansible \
+  python3-openssl \
+  python3-socks \
+  python3-docker \
+  python3-dockerpty \
+  python3-ansible-runner \
+  python-dev-is-python3 \
+  libxml2-dev \
+  libxslt1-dev \
+  libonig-dev
+
+echo 'Ensure break-system-packages is set for system Python'
+python3 -m pip config set --global global.break-system-packages true
+
+echo 'Installing Yamllint'
+pip3 install --no-cache-dir --ignore-installed --root-user-action=ignore PyYAML
+
+pip3 install --no-cache-dir --ignore-installed --root-user-action=ignore \
+  toml \
+  ansible-lint \
+  ansible-navigator \
+  ansible-builder \
+  yamllint
+
+ansible-navigator --version
+ansible-builder --version
+yamllint --version
+echo '::endgroup::'
+
+#
+# Astral UV (from default.sh)
+#
+echo '::group::Installing: Astral UV'
+cat >>/etc/environment <<EOF
+UV_BREAK_SYSTEM_PACKAGES=true
+UV_NO_PROGRESS=true
+UV_NO_WRAP=true
+UV_INSTALL_DIR="${HOME}/.local/bin"
+EOF
+
+. /etc/environment
+
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+PATH="$UV_INSTALL_DIR:$PATH"
+
+uv python install 3.13 3.14
+uv tool update-shell
+uv tool install --python-preference=managed pre-commit
+uv tool install --python-preference=managed tox
+echo '::endgroup::'
+
+#
+# Cleanup
+#
+echo '::group::Cleaning Up Image'
+rm -rf "${CARGO_HOME}/registry/*"
+apt-get clean
+rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
 echo '::endgroup::'
