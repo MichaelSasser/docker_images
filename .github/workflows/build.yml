@@ -66,7 +66,7 @@ jobs:
           fi
 
           BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          TMP_TAG="ubuntu-${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
+          TMP_TAG="${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
           TMP_REF="ghcr.io/${SLUG}:${TMP_TAG}"
 
           if [[ -n "${{ env.PUSH_GHCR }}" || -n "${{ env.PUSH_QUAY }}" || -n "${{ env.PUSH_DOCKER_HUB }}" ]]; then
@@ -78,7 +78,7 @@ jobs:
           echo "PART_TAG=${PART_TAG}" >> $GITHUB_ENV
           echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_ENV
           echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
-          echo "BUILD_TAG=ubuntu-${TAG}" >> $GITHUB_ENV
+          echo "BUILD_TAG=${TAG}" >> $GITHUB_ENV
           echo "TAG=${TAG}" >> $GITHUB_ENV
           echo "TMP_TAG=${TMP_TAG}" >> $GITHUB_ENV
           echo "TMP_REF=${TMP_REF}" >> $GITHUB_ENV
@@ -200,7 +200,7 @@ jobs:
           fi
 
           BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          TMP_TAG="ubuntu-${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
+          TMP_TAG="${TAG}-${PART_TAG}-tmp-${{ github.run_id }}-${ARCH}"
           TMP_REF="ghcr.io/${SLUG}:${TMP_TAG}"
 
           if [[ -n "${{ env.PUSH_GHCR }}" || -n "${{ env.PUSH_QUAY }}" || -n "${{ env.PUSH_DOCKER_HUB }}" ]]; then
@@ -212,7 +212,7 @@ jobs:
           echo "PART_TAG=${PART_TAG}" >> $GITHUB_ENV
           echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_ENV
           echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
-          echo "BUILD_TAG=ubuntu-${TAG}" >> $GITHUB_ENV
+          echo "BUILD_TAG=${TAG}" >> $GITHUB_ENV
           echo "TAG=${TAG}" >> $GITHUB_ENV
           echo "TMP_TAG=${TMP_TAG}" >> $GITHUB_ENV
           echo "TMP_REF=${TMP_REF}" >> $GITHUB_ENV
@@ -312,7 +312,7 @@ jobs:
       TMP_TAG_AMD64: ${{ needs.ubuntu-amd64.outputs.tmp_tag }}
       TMP_REF_ARM64: ${{ needs.ubuntu-arm64.outputs.tmp_ref }}
       TMP_TAG_ARM64: ${{ needs.ubuntu-arm64.outputs.tmp_tag }}
-      PRIMARY_TAG: ubuntu-${{ needs.ubuntu-amd64.outputs.tag }}-${{ needs.ubuntu-amd64.outputs.part_tag }}
+      PRIMARY_TAG: ${{ needs.ubuntu-amd64.outputs.tag }}-${{ needs.ubuntu-amd64.outputs.part_tag }}
     steps:
       - uses: actions/checkout@v5
 
@@ -375,16 +375,16 @@ jobs:
 
           declare -a TAG_SUFFIXES=(
             "${PRIMARY_TAG}"
-            "ubuntu-latest-${PART_TAG}"
+            "latest-${PART_TAG}"
           )
 
           if [[ "${IS_RELEASE}" == "1" ]]; then
-            TAG_SUFFIXES+=("ubuntu-${TAG}" "ubuntu-latest" "ubuntu-${TAG}-dev")
+            TAG_SUFFIXES+=("${TAG}" "latest" "${TAG}-dev")
           else
-            TAG_SUFFIXES+=("ubuntu-${TAG}-dev")
+            TAG_SUFFIXES+=("${TAG}-dev")
           fi
 
-          TAG_SUFFIXES+=("ubuntu-latest-dev")
+          TAG_SUFFIXES+=("latest-dev")
 
           mapfile -t UNIQUE_TAGS < <(printf '%s\n' "${TAG_SUFFIXES[@]}" | awk '!seen[$0]++')
 
