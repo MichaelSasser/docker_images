@@ -5,7 +5,7 @@
 
 # Docker images
 
-This repository builds `amd64` and `arm64` OCI-compatible Multi-arch images
+This repository builds `amd64` and `arm64` OCI-compatible multi-arch images
 on native hardware, for [act](https://github.com/nektos/act) compatible
 runners powering CI/CD workflows. The images contain a set of tools that
 are commonly used by our [Forgejo](https://forgejo.org/) workflows. Weekly
@@ -13,7 +13,7 @@ builds are scheduled to keep the images and their tools up-to-date.
 
 ## Ubuntu
 
-Our general-purpose image, which includes a variety of tools for
+Our general-purpose image, which includes various tools for
 building and testing. It is expected that the extracted image is
 5 GB to 6 GB in size.
 
@@ -22,14 +22,14 @@ building and testing. It is expected that the extracted image is
 
 ### Tools
 
-The tools are installed from a variety of sources, including:
+The tools are installed from various sources, including:
 
 - The latest stable versions as binaries from the original repositories
 - Custom package manager repositories
 - System package manager
 - Building from source
 
-The lists below show most of the tools included in the image.
+The lists below (click to unfold) show most of the tools included in the image.
 
 <!-- Rust -->
 <details>
