@@ -90,6 +90,8 @@ echo "Downloading Mold from: ${MOLD_URL}"
 mkdir -p "mold"
 curl -sLS --proto '=https' --tlsv1.2 --connect-timeout 60 --retry 5 --retry-all-errors --retry-connrefused "${MOLD_URL}" | tar xz --strip-components=1 -C "mold"
 
+ARCH=$(uname -m)
+
 # Binaries
 #  bin
 # ├──  ld.mold -> mold
@@ -101,7 +103,7 @@ ln -sf /usr/bin/mold /usr/bin/ld.mold
 #  lib
 # └──  mold
 #     └──  mold-wrapper.so
-install -D -m 0644 -o root -g root ./mold/lib/mold/mold-wrapper.so /usr/lib/x86_64-linux-gnu/mold/mold-wrapper.so
+install -D -m 0644 -o root -g root ./mold/lib/mold/mold-wrapper.so "/usr/lib/${ARCH}-linux-gnu/mold/mold-wrapper.so"
 
 # Libexec
 #  libexec
@@ -123,8 +125,8 @@ install -D -m 0644 -o root -g root ./mold/share/doc/mold/LICENSE /usr/share/doc/
 #     └──  man1
 #         ├──  ld.mold.1 -> mold.1
 #         └──  mold.1
-install -D -m 0644 -o root -g root ./mold/share/man/man1/mold.1 /usr/share/man/man1/mold.1
-ln -sf /usr/share/man/man1/mold.1 /usr/share/man/man1/ld.mold.1
+# install -D -m 0644 -o root -g root ./mold/share/man/man1/mold.1 /usr/share/man/man1/mold.1
+# ln -sf /usr/share/man/man1/mold.1 /usr/share/man/man1/ld.mold.1
 
 echo Mold version: "$(/usr/bin/mold --version)"
 

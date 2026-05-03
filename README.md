@@ -50,11 +50,11 @@ between 5 GB and 6 GB.
 
 #### Stable
 
-- [ubuntu-24.04](ghcr.io/MichaelSasser/ubuntu:ubuntu-24.04), [ubuntu-latest](ghcr.io/MichaelSasser/ubuntu:ubuntu-latest)
+- [ubuntu:24.04](ghcr.io/MichaelSasser/ubuntu:24.04), [ubuntu:latest](ghcr.io/MichaelSasser/ubuntu:latest)
 
 #### Development
 
-- [ubuntu-24.04-dev](ghcr.io/MichaelSasser/ubuntu:ubuntu-24.04-dev), [ubuntu-latest-dev](ghcr.io/MichaelSasser/ubuntu:ubuntu-latest-dev)
+- [ubuntu:24.04-dev](ghcr.io/MichaelSasser/ubuntu:24.04-dev), [ubuntu:latest-dev](ghcr.io/MichaelSasser/ubuntu:latest-dev)
 
 ### Tools
 

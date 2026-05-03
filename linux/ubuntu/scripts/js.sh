@@ -27,18 +27,19 @@ nvm --version
 versions=("24")
 JSON=$(wget -qO- https://nodejs.org/download/release/index.json | jq --compact-output)
 
+ARCH=$(uname -m)
+if [ "$ARCH" = x86_64 ]; then ARCH=x64; fi
+if [ "$ARCH" = aarch64 ]; then ARCH=arm64; fi
+
 for V in "${versions[@]}"; do
   printf "\n\t🐋 Installing NODE=%s 🐋\t\n" "${V}"
   VER=$(echo "${JSON}" | jq "[.[] | select(.version|test(\"^v${V}\"))][0].version" -r)
-  NODEPATH="${ACT_TOOLSDIRECTORY}/node/${VER:1}/x64"
+  NODEPATH="${ACT_TOOLSDIRECTORY}/node/${VER:1}/${ARCH}"
 
   mkdir -v -m 0777 -p "$NODEPATH"
-  ARCH=$(uname -m)
-  if [ "$ARCH" = x86_64 ]; then ARCH=x64; fi
-  if [ "$ARCH" = aarch64 ]; then ARCH=arm64; fi
   wget -qO- "https://nodejs.org/download/release/latest-v${V}.x/node-$VER-linux-$ARCH.tar.xz" | tar -Jxf - --strip-components=1 -C "$NODEPATH"
 
-  # Making this Node version the devault
+  # Making this Node version the default
   # NOTE: Disabled because we want to keep the version installed in act.sh
   # as the default version. At the point of writing this, this would be 22.
   #
@@ -49,7 +50,7 @@ for V in "${versions[@]}"; do
   "$NODEPATH/bin/node" -v
 done
 
-# npm timeout under qemu with defaults
+# npm timeout under qemu with defaults.
 set -x
 npm config set fetch-timeout 120000
 npm config set fetch-retry-mintimeout 120000
@@ -95,6 +96,4 @@ npm cache clean --force
 rm -rf "$NVM_DIR/.cache"
 apt-get clean
 rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* /tmp/* || echo 'Failed to delete directories'
-# remove npm config
-npm config edit --editor rm
 echo '::endgroup::'

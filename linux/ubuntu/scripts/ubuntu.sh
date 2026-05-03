@@ -273,6 +273,12 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashi
 apt update
 apt install --no-install-recommends terraform consul nomad packer
 
+# Hack: We do this to avoid the postinit script which would set the ipc lock
+# cap on vault. Generally this is desirable but would be tricky in our CI
+# environment. If you want to set the cap, run `vault-setcap` in CI beforehand.
+# We also don't want to create a certificate for vault and bake it into the
+# image as this would be a security risk. If you need it, you can generate it
+# in CI by running `vault-gen-certs`.
 apt-get download vault
 sudo dpkg --unpack vault*.deb
 sudo rm -f /var/lib/dpkg/info/vault.postinst
