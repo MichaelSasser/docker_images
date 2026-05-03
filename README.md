@@ -17,36 +17,33 @@ workflows.
 > intended to be a (drop-in) replacement but rather a continuation of the
 > original project with changes that are useful to me.
 
-I initially kept the complex build system from the original project, because
-changing it meant a lot of work, with no benefit to the resulting images.
-Due to recent issues and timeouts from the external repositories I decided
-to put in that work. I first simplified the build system by replacing most of
-it with docker buildx, just to make it potentially even more complex in the end.
-The advantages we get from this are natively built multi-arch images. Meaning
-no qemu emulation layer anymore and therefore quicker turnaround times for
-builds.
+Initially I kept the build process from the original project because
+changing it would have meant a lot of work, with no benefit to the resulting images.
+Building the images with the added tools took around 5-6 hours, and
+had a catastrophically low success rate. Often thanks to GitHub's miserable uptime
+after Microsoft took over and free-account limitations resulting from slow builds.
 
-The initial build process (with the added tools) took around 5-6 hours. On
-good days the builds went through successfully, but every so often they
-failed due to GitHub free-account limitations.
-Optimizing from where the tools come from and how they are installed, the
-build times went down to under 2 hours.
-The build system rewrite shaves off additional 90% of that, bringing it down
-to under 10 minutes for the entire build.
+To fix this once and for all, I first optimized from where the tools
+are coming from and how they are installed. This brought the build times down
+to under 2 hours. Then I rewrote the build process so that multi-arch images are
+built on native hardware. (no QEMU emulation layer anymore). This shaved off
+another 90% of build time, bringing it down to under 10 minutes for the entire
+image.
 
-## The Ubuntu Image
+## Ubuntu
 
 This image is based on the "Custom", "Rust" and "JavaScript" image from the
 original project. Many of the JavaScript tools have been removed and some
 Python and Rust tools have been added. The images are based on
 Ubuntu 24.04 with Node 22 as the default.
 
-### Images
+### Image
 
-The images are tagged with timestamps, you can find them all
-[here](https://github.com/MichaelSasser/docker_images/pkgs/container/ubuntu).
-The "latest" images are listed below. The total file size (extracted) varies
-between 5 GB and 6 GB.
+You can find a complete list of images in the
+[Packages](https://github.com/MichaelSasser/docker_images/pkgs/container/ubuntu)
+section, including images tagged with timestamps.
+
+It is expected that the extracted image is 5 GB to 6 GB in size.
 
 #### Stable
 
@@ -58,9 +55,8 @@ between 5 GB and 6 GB.
 
 ### Tools
 
-I am trying to keep the tools up to date. To do this, I have scheduled a
-weekly GitHub Action that rebuilds the images to pick up up-to-date tools from
-various sources including:
+To keep the tools up-to-date, I have scheduled a weekly build of the images.
+The tools are installed from a variety of sources, including:
 
 - The latest stable versions as binaries from the original repositories
 - Custom package manager repositories
@@ -88,6 +84,9 @@ The lists below show most of the tools included in the image.
 - Toolchains installed using `rustup`:
   - `stable`: contains `rustfmt`, `clippy`
   - `nightly`: contains `rustfmt`, `clippy`, `rustc-codegen-cranelift-preview`
+- Targets:
+  - `x86_64-unknown-linux-gnu` for `x86` images
+  - `aarch64-unknown-linux-gnu` for `aarch64` images
 - Tools:
   - `binstall`
     - `bindgen-cli`, `cbindgen`, `cargo-audit`, `cargo-outdated`,
