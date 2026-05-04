@@ -7,14 +7,15 @@
 # source: https://github.com/actions/runner-images/blob/5d6938f680075d63fa71f8aa70990866cd12884b/images/linux/scripts/installers/yq.sh
 
 # Source the helpers for use with the script
+# shellcheck disable=SC1091
 . /imagegeneration/installers/helpers/install.sh
 
 yq_arch() {
   case "$(uname -m)" in
-    'aarch64') echo 'arm64' ;;
-    'x86_64') echo 'amd64' ;;
-    'armv7l') echo 'arm' ;;
-    *) exit 1 ;;
+  'aarch64') echo 'arm64' ;;
+  'x86_64') echo 'amd64' ;;
+  'armv7l') echo 'arm' ;;
+  *) exit 1 ;;
   esac
 }
 

@@ -5,20 +5,21 @@
 
 # Docker images
 
-This repository builds `amd64` and `arm64` OCI-compatible multi-arch images
-on native hardware, for [act](https://github.com/nektos/act) compatible
-runners powering CI/CD workflows. The images contain a set of tools that
-are commonly used by our [Forgejo](https://forgejo.org/) workflows. Weekly
-builds are scheduled to keep the images and their tools up-to-date.
+This repository builds `amd64` and `arm64` OCI-compatible multi-arch images on
+native hardware, for [act](https://github.com/nektos/act) compatible runners
+powering CI/CD workflows. The images contain a set of tools that are commonly
+used by our [Forgejo](https://forgejo.org/) workflows. Weekly builds are
+scheduled to keep the images and their tools up-to-date.
 
 ## Ubuntu
 
-Our general-purpose image, which includes various tools for
-building and testing. It is expected that the extracted image is
-5 GB to 6 GB in size.
+Our general-purpose image, which includes various tools for building and
+testing. It is expected that the extracted image is 5 GB to 6 GB in size.
 
-- **Stable**: [ubuntu:24.04](ghcr.io/MichaelSasser/ubuntu:24.04), [ubuntu:latest](ghcr.io/MichaelSasser/ubuntu:latest)
-- **Development**: [ubuntu:24.04-dev](ghcr.io/MichaelSasser/ubuntu:24.04-dev), [ubuntu:latest-dev](ghcr.io/MichaelSasser/ubuntu:latest-dev)
+- **Stable**: [ubuntu:24.04](ghcr.io/MichaelSasser/ubuntu:24.04),
+  [ubuntu:latest](ghcr.io/MichaelSasser/ubuntu:latest)
+- **Development**: [ubuntu:24.04-dev](ghcr.io/MichaelSasser/ubuntu:24.04-dev),
+  [ubuntu:latest-dev](ghcr.io/MichaelSasser/ubuntu:latest-dev)
 
 ### Tools
 
@@ -43,8 +44,8 @@ The lists below (click to unfold) show most of the tools included in the image.
   - `aarch64-unknown-linux-gnu` for `aarch64` images
 - Tools:
   - `binstall`
-    - `bindgen-cli`, `cbindgen`, `cargo-audit`, `cargo-outdated`,
-      `cargo-hack`, `cargo-semver-checks`, `cargo-llvm-cov`
+    - `bindgen-cli`, `cbindgen`, `cargo-audit`, `cargo-outdated`, `cargo-hack`,
+      `cargo-semver-checks`, `cargo-llvm-cov`
 
 </details>
 
@@ -61,8 +62,7 @@ The lists below (click to unfold) show most of the tools included in the image.
     `python3-ansible-runner`
 - `uv`:
   - Installed versions: `3.13` and `3.14`
-  - Tools: `pre-commit`,
-    and `tox`
+  - Tools: `pre-commit`, and `tox`
 
 </details>
 
@@ -87,7 +87,8 @@ The lists below (click to unfold) show most of the tools included in the image.
 <details>
   <summary>C/C++ (and build tools in general)</summary>
 
-- System's package manager: `build-essential` `llvm` `clang` `libssl-dev`, `cmake`
+- System's package manager: `build-essential` `llvm` `clang` `libssl-dev`,
+  `cmake`
 - Repo release: `mold` (a modern linker)
 
 </details>
@@ -98,7 +99,8 @@ The lists below (click to unfold) show most of the tools included in the image.
 
 - [terraform](https://www.terraform.io/)
 - [packer](https://www.packer.io/)
-- [vault](https://www.vaultproject.io/) + scripts: `vault-gen-certs` and `vault-setcap`
+- [vault](https://www.vaultproject.io/) + scripts: `vault-gen-certs` and
+  `vault-setcap`
 - [consul](https://www.consul.io/)
 - [nomad](https://www.nomadproject.io/)
 
@@ -111,8 +113,10 @@ The lists below (click to unfold) show most of the tools included in the image.
 - [gh](https://github.com/cli/cli) - The GitHub CLI tool
 - [jq](https://github.com/jqlang/jq) - Command-line JSON processor
 - [yq](https://github.com/mikefarah/yq) - Command-line YAML processor
-- [typst-cli](https://github.com/typst/typst/tree/main/crates/typst-cli) (installed via `binstall`) - A modern typesetting system
-- [tea](https://github.com/gitea/tea) - A command line interface for Gitea/Forgejo
+- [typst-cli](https://github.com/typst/typst/tree/main/crates/typst-cli)
+  (installed via `binstall`) - A modern typesetting system
+- [tea](https://github.com/gitea/tea) - A command line interface for
+  Gitea/Forgejo
 - [taplo](https://github.com/tamasfe/taplo) - A fast TOML toolkit
 
 </details>
@@ -127,8 +131,8 @@ Released under the [MIT license](./LICENSE).
 ### Attribution
 
 This repository is hard fork of
-[catthehacker/docker_images](https://github.com/catthehacker/docker_images).
-It contains parts of
+[catthehacker/docker_images](https://github.com/catthehacker/docker_images). It
+contains parts of
 [`actions/virtual-environments`][actions/virtual-environments] which is also
 licensed under the
 [MIT License](https://github.com/actions/virtual-environments/blob/main/LICENSE).

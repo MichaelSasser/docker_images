@@ -1,17 +1,17 @@
 ---
-name: Build ubuntu
+name: Build Ubuntu
 
 on:
   schedule: [{ cron: '0 12 */7 * *' }]
   push:
     branches: [master]
     paths:
-      - '.github/workflows/build.yml'
+      - '.github/workflows/build-ubuntu.yml'
       - 'ubuntu/Dockerfile'
       - 'ubuntu/setup/**'
   pull_request:
     paths:
-      - '.github/workflows/build.yml'
+      - '.github/workflows/build-ubuntu.yml'
       - 'ubuntu/Dockerfile'
       - 'ubuntu/setup/**'
   workflow_dispatch:

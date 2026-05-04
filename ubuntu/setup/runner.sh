@@ -1,5 +1,7 @@
+#!/bin/bash
+
 # Not used in the current image, but left here for reference and future use.
-##!/bin/bash
+#
 ## shellcheck disable=SC2174,SC1091
 #
 #set -Eeuxo pipefail

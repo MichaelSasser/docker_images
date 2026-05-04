@@ -1,0 +1,44 @@
+---
+name: Lint and SARIF
+on:
+  push:
+    branches: [master]
+    paths: ["ubuntu/setup/**"]
+  pull_request:
+    paths: ["ubuntu/setup/**"]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ubuntu/Dockerfile
+          trusted-registries: docker.io, ghcr.io, quay.io
+
+      - run: |
+          yamllint -v
+          yamllint -s -c -f github .yamllint.yaml .
+
+  scan:
+    name: ShellCheck Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ShellCheck with SARIF output
+        uses: reactive-firewall/shellcheck-scan@v1
+        with:
+          match: "ubuntu/setup/**/*.sh"
+          shell-format: "bash"
