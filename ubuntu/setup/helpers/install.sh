@@ -35,10 +35,10 @@ download_with_retries() {
     while [ $retries -gt 0 ]; do
         ((retries--))
         test "$ERR_EXIT_ENABLED" = true && set +e
-        http_code=$(eval $COMMAND)
+        http_code=$(eval "$COMMAND")
         exit_code=$?
         test "$ERR_EXIT_ENABLED" = true && set -e
-        if [ $http_code -eq 200 ] && [ $exit_code -eq 0 ]; then
+        if [ "$http_code" -eq 200 ] && [ "$exit_code" -eq 0 ]; then
             echo "Download completed"
             return 0
         else
@@ -57,7 +57,7 @@ download_with_retries() {
 ##     echo "packageName is not installed!"
 ## fi
 IsPackageInstalled() {
-    dpkg -S $1 &> /dev/null
+    dpkg -S "$1" &> /dev/null
 }
 
 verlte() {
@@ -70,9 +70,10 @@ get_toolset_path() {
 }
 
 get_toolset_value() {
-    local toolset_path=$(get_toolset_path)
+    local toolset_path
+    toolset_path=$(get_toolset_path)
     local query=$1
-    echo "$(jq -r "$query" $toolset_path)"
+    jq -r "$query" "$toolset_path"
 }
 
 get_github_package_download_url() {
@@ -84,17 +85,17 @@ get_github_package_download_url() {
     json=$(curl -fsSL "https://api.github.com/repos/${REPO_ORG}/releases?per_page=${SEARCH_IN_COUNT}")
 
     if [ -n "$VERSION" ]; then
-        tagName=$(echo $json | jq -r '.[] | select(.prerelease==false).tag_name' | sort --unique --version-sort | egrep -v ".*-[a-z]|beta" | egrep "\w*${VERSION}" | tail -1)
+        tagName=$(echo "$json" | jq -r '.[] | select(.prerelease==false).tag_name' | sort --unique --version-sort | grep -E -v ".*-[a-z]|beta" | grep -E "\w*${VERSION}" | tail -1)
     else
-        tagName=$(echo $json | jq -r '.[] | select((.prerelease==false) and (.assets | length > 0)).tag_name' | sort --unique --version-sort | egrep -v ".*-[a-z]|beta" | tail -1)
+        tagName=$(echo "$json" | jq -r '.[] | select((.prerelease==false) and (.assets | length > 0)).tag_name' | sort --unique --version-sort | grep -E -v ".*-[a-z]|beta" | tail -1)
     fi
 
-    downloadUrl=$(echo $json | jq -r ".[] | select(.tag_name==\"${tagName}\").assets[].browser_download_url | select(${FILTER})" | head -n 1)
+    downloadUrl=$(echo "$json" | jq -r ".[] | select(.tag_name==\"${tagName}\").assets[].browser_download_url | select(${FILTER})" | head -n 1)
     if [ -z "$downloadUrl" ]; then
         echo "Failed to parse a download url for the '${tagName}' tag using '${FILTER}' filter"
         exit 1
     fi
-    echo $downloadUrl
+    echo "$downloadUrl"
 }
 
 get_github_package_hash() {

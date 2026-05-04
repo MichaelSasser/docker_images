@@ -13,11 +13,10 @@ SHELL [ "/bin/bash", "--login", "-e", "-o", "pipefail", "-c" ]
 WORKDIR /tmp
 
 COPY ./${DISTRO}/setup /imagegeneration/installers
-RUN bash /imagegeneration/installers/main.sh
-
-RUN for file in /root/.bashrc /root/.profile /etc/bash.bashrc /etc/profile; do \
-	echo '[ -f /etc/environment ] && source /etc/environment' >> "$file"; \
-	done
+RUN bash /imagegeneration/installers/main.sh && \
+    for file in /root/.bashrc /root/.profile /etc/bash.bashrc /etc/profile; do \
+        echo '[ -f /etc/environment ] && source /etc/environment' >> "$file"; \
+    done
 
 ARG BUILD_DATE
 ARG BUILD_TAG=ubuntu

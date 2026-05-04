@@ -1,11 +1,11 @@
 ---
-name: Lint and SARIF
+name: Lint
 on:
   push:
     branches: [master]
-    paths: ["ubuntu/setup/**"]
+    paths: ["ubuntu/setup/**", "ubuntu/Dockerfile", ".hadolint.yaml"]
   pull_request:
-    paths: ["ubuntu/setup/**"]
+    paths: ["ubuntu/setup/**", "ubuntu/Dockerfile", ".hadolint.yaml"]
   workflow_dispatch:
 
 jobs:
@@ -13,32 +13,20 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: ubuntu/Dockerfile
-          trusted-registries: docker.io, ghcr.io, quay.io
+      - name: Install lint dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          pip install yamllint
+          curl -sL https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
+          sudo chmod +x /usr/local/bin/hadolint
 
-      - run: |
-          yamllint -v
-          yamllint -s -c -f github .yamllint.yaml .
+      - name: Install just
+        uses: extractions/setup-just@v2
 
-  scan:
-    name: ShellCheck Analysis
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run ShellCheck with SARIF output
-        uses: reactive-firewall/shellcheck-scan@v1
-        with:
-          match: "ubuntu/setup/**/*.sh"
-          shell-format: "bash"
+      - name: Run linters
+        run: just lint
