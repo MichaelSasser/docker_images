@@ -131,10 +131,7 @@ Released under the [MIT license](./LICENSE).
 ### Attribution
 
 This repository is hard fork of
-[catthehacker/docker_images](https://github.com/catthehacker/docker_images). It
-contains parts of
-[`actions/virtual-environments`][actions/virtual-environments] which is also
-licensed under the
-[MIT License](https://github.com/actions/virtual-environments/blob/main/LICENSE).
-
-[actions/virtual-environments]: https://github.com/actions/virtual-environments
+[catthehacker/docker_images](https://github.com/catthehacker/docker_images) and
+uses parts of
+[`actions/virtual-environments`](https://github.com/actions/virtual-environments).
+Both repositories are licensed under the MIT License.
