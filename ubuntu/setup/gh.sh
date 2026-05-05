@@ -14,4 +14,4 @@ if [ "$ARCH" = armv7l ]; then ARCH=armv6; fi
 
 url=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | jq -r ".assets[].browser_download_url|select(contains(\"linux\") and contains(\"$ARCH\") and contains(\".deb\"))")
 wget -q "$url" -O "/tmp/gh.deb"
-apt install /tmp/gh.deb
+apt-get install --no-install-recommends /tmp/gh.deb

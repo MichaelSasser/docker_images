@@ -5,71 +5,53 @@
 
 # Docker images
 
-The OCI-compatible images created by this repository are intended to be used with
-[forgejo-runner](https://code.forgejo.org/forgejo/runner)
-(or anything [act](https://github.com/nektos/act) compatible) to power CI/CD
-workflows.
+This repository builds `amd64` and `arm64` OCI-compatible multi-arch images on
+native hardware, for [act](https://github.com/nektos/act) compatible runners
+powering CI/CD workflows. The images contain a set of tools that are commonly
+used by our [Forgejo](https://forgejo.org/) workflows. Weekly builds are
+scheduled to keep the images and their tools up-to-date.
 
-> [!IMPORTANT]
-> This is a hard fork of
-> [catthehacker/docker_images](https://github.com/catthehacker/docker_images)
-> which at the time of forking seemed to be abandoned. This fork is not
-> intended to be a (drop-in) replacement but rather a continuation of the
-> original project with changes that are useful to me.
+## Ubuntu
 
-I initially kept the complex build system from the original project, because
-changing it meant a lot of work, with no benefit to the resulting images.
-Due to recent issues and timeouts from the external repositories I decided
-to put in that work. I first simplified the build system by replacing most of
-it with docker buildx, just to make it potentially even more complex in the end.
-The advantages we get from this are natively built multi-arch images. Meaning
-no qemu emulation layer anymore and therefore quicker turnaround times for
-builds.
+Our general-purpose image, which includes various tools for building and
+testing. It is expected that the extracted image is 5 GB to 6 GB in size.
 
-The initial build process (with the added tools) took around 5-6 hours. On
-good days the builds went through successfully, but every so often they
-failed due to GitHub free-account limitations.
-Optimizing from where the tools come from and how they are installed, the
-build times went down to under 2 hours.
-The build system rewrite shaves off additional 90% of that, bringing it down
-to under 10 minutes for the entire build.
-
-## The Ubuntu Image
-
-This image is based on the "Custom", "Rust" and "JavaScript" image from the
-original project. Many of the JavaScript tools have been removed and some
-Python and Rust tools have been added. The images are based on
-Ubuntu 24.04 with Node 22 as the default.
-
-### Images
-
-The images are tagged with timestamps, you can find them all
-[here](https://github.com/MichaelSasser/docker_images/pkgs/container/ubuntu).
-The "latest" images are listed below. The total file size (extracted) varies
-between 5 GB and 6 GB.
-
-#### Stable
-
-- [ubuntu-24.04](ghcr.io/MichaelSasser/ubuntu:ubuntu-24.04), [ubuntu-latest](ghcr.io/MichaelSasser/ubuntu:ubuntu-latest)
-
-#### Development
-
-- [ubuntu-24.04-dev](ghcr.io/MichaelSasser/ubuntu:ubuntu-24.04-dev), [ubuntu-latest-dev](ghcr.io/MichaelSasser/ubuntu:ubuntu-latest-dev)
+- **Stable**: [ubuntu:24.04](ghcr.io/MichaelSasser/ubuntu:24.04),
+  [ubuntu:latest](ghcr.io/MichaelSasser/ubuntu:latest)
+- **Development**: [ubuntu:24.04-dev](ghcr.io/MichaelSasser/ubuntu:24.04-dev),
+  [ubuntu:latest-dev](ghcr.io/MichaelSasser/ubuntu:latest-dev)
 
 ### Tools
 
-I am trying to keep the tools up to date. To do this, I have scheduled a
-weekly GitHub Action that rebuilds the images to pick up up-to-date tools from
-various sources including:
+The tools are installed from various sources, including:
 
 - The latest stable versions as binaries from the original repositories
 - Custom package manager repositories
 - System package manager
 - Building from source
 
-The lists below show most of the tools included in the image.
+The lists below (click to unfold) show most of the tools included in the image.
 
-#### Python
+<!-- Rust -->
+<details>
+  <summary>Rust</summary>
+
+- Toolchains installed using `rustup`:
+  - `stable`: contains `rustfmt`, `clippy`
+  - `nightly`: contains `rustfmt`, `clippy`, `rustc-codegen-cranelift-preview`
+- Targets:
+  - `x86_64-unknown-linux-gnu` for `x86` images
+  - `aarch64-unknown-linux-gnu` for `aarch64` images
+- Tools:
+  - `binstall`
+    - `bindgen-cli`, `cbindgen`, `cargo-audit`, `cargo-outdated`, `cargo-hack`,
+      `cargo-semver-checks`, `cargo-llvm-cov`
+
+</details>
+
+<!-- Python -->
+<details>
+  <summary>Python</summary>
 
 - System Python: `python3` with `pip3` installed with the system's package
   manager
@@ -80,49 +62,64 @@ The lists below show most of the tools included in the image.
     `python3-ansible-runner`
 - `uv`:
   - Installed versions: `3.13` and `3.14`
-  - Tools: `pre-commit`,
-    and `tox`
+  - Tools: `pre-commit`, and `tox`
 
-#### Rust
+</details>
 
-- Toolchains installed using `rustup`:
-  - `stable`: contains `rustfmt`, `clippy`
-  - `nightly`: contains `rustfmt`, `clippy`, `rustc-codegen-cranelift-preview`
-- Tools:
-  - `binstall`
-    - `bindgen-cli`, `cbindgen`, `cargo-audit`, `cargo-outdated`,
-      `cargo-hack`, `cargo-semver-checks`, `cargo-llvm-cov`
-
-#### Node
+<!-- Node -->
+<details>
+  <summary>Node</summary>
 
 - Versions: `18`, `20`, `22` (default) and `24`
 - Tools: `nvm`, `npm`, `pnpm` and `yarn`
 
-#### Go
+</details>
+
+<!-- Go -->
+<details>
+  <summary>Go</summary>
 
 - `go` ("Golang")
 
-#### C/C++ (or build tools in general)
+</details>
 
-- System's package manager: `build-essential` `llvm` `clang` `libssl-dev`, `cmake`
+<!-- C/C++ -->
+<details>
+  <summary>C/C++ (and build tools in general)</summary>
+
+- System's package manager: `build-essential` `llvm` `clang` `libssl-dev`,
+  `cmake`
 - Repo release: `mold` (a modern linker)
 
-#### HashiCorp Stack
+</details>
+
+<!-- HashiCorp -->
+<details>
+  <summary>HashiCorp Stack</summary>
 
 - [terraform](https://www.terraform.io/)
 - [packer](https://www.packer.io/)
-- [vault](https://www.vaultproject.io/) + scripts: `vault-gen-certs` and `vault-setcap`
+- [vault](https://www.vaultproject.io/) + scripts: `vault-gen-certs` and
+  `vault-setcap`
 - [consul](https://www.consul.io/)
 - [nomad](https://www.nomadproject.io/)
 
-#### Additional Tools
+</details>
+
+<!-- Misc -->
+<details>
+  <summary>Misc</summary>
 
 - [gh](https://github.com/cli/cli) - The GitHub CLI tool
 - [jq](https://github.com/jqlang/jq) - Command-line JSON processor
 - [yq](https://github.com/mikefarah/yq) - Command-line YAML processor
-- [typst-cli](https://github.com/typst/typst/tree/main/crates/typst-cli) (installed via `binstall`) - A modern typesetting system
-- [tea](https://github.com/gitea/tea) - A command line interface for Gitea/Forgejo
+- [typst-cli](https://github.com/typst/typst/tree/main/crates/typst-cli)
+  (installed via `binstall`) - A modern typesetting system
+- [tea](https://github.com/gitea/tea) - A command line interface for
+  Gitea/Forgejo
 - [taplo](https://github.com/tamasfe/taplo) - A fast TOML toolkit
+
+</details>
 
 ## License
 
@@ -133,9 +130,8 @@ Released under the [MIT license](./LICENSE).
 
 ### Attribution
 
-This repository contains parts of
-[`actions/virtual-environments`][actions/virtual-environments] which is also
-licensed under the
-[MIT License](https://github.com/actions/virtual-environments/blob/main/LICENSE).
-
-[actions/virtual-environments]: https://github.com/actions/virtual-environments
+This repository is hard fork of
+[catthehacker/docker_images](https://github.com/catthehacker/docker_images) and
+uses parts of
+[`actions/virtual-environments`](https://github.com/actions/virtual-environments).
+Both repositories are licensed under the MIT License.

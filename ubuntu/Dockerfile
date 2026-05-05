@@ -12,12 +12,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL [ "/bin/bash", "--login", "-e", "-o", "pipefail", "-c" ]
 WORKDIR /tmp
 
-COPY ./linux/${DISTRO}/scripts /imagegeneration/installers
-RUN bash /imagegeneration/installers/ubuntu.sh
-
-RUN for file in /root/.bashrc /root/.profile /etc/bash.bashrc /etc/profile; do \
-	echo '[ -f /etc/environment ] && source /etc/environment' >> "$file"; \
-	done
+COPY ./${DISTRO}/setup /imagegeneration/installers
+RUN bash /imagegeneration/installers/main.sh && \
+    for file in /root/.bashrc /root/.profile /etc/bash.bashrc /etc/profile; do \
+        echo '[ -f /etc/environment ] && source /etc/environment' >> "$file"; \
+    done
 
 ARG BUILD_DATE
 ARG BUILD_TAG=ubuntu
@@ -28,7 +27,7 @@ ARG BUILD_REPO
 LABEL org.opencontainers.image.created="${BUILD_DATE}" \
 	org.opencontainers.image.vendor="${BUILD_OWNER}" \
 	org.opencontainers.image.authors="https://github.com/${BUILD_OWNER}" \
-	org.opencontainers.image.url="https://github.com/${BUILD_OWNER}/${BUILD_REPO}/tree/${BUILD_REF}/linux/${DISTRO}/ubuntu/" \
+	org.opencontainers.image.url="https://github.com/${BUILD_OWNER}/${BUILD_REPO}/tree/${BUILD_REF}/${DISTRO}/" \
 	org.opencontainers.image.source="https://github.com/${BUILD_OWNER}/${BUILD_REPO}" \
 	org.opencontainers.image.documentation="https://github.com/${BUILD_OWNER}/${BUILD_REPO}" \
 	org.opencontainers.image.version="${BUILD_TAG_VERSION}" \

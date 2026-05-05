@@ -1,0 +1,32 @@
+---
+name: Lint
+on:
+  push:
+    branches: [master]
+    paths: ["ubuntu/setup/**", "ubuntu/Dockerfile", ".hadolint.yaml"]
+  pull_request:
+    paths: ["ubuntu/setup/**", "ubuntu/Dockerfile", ".hadolint.yaml"]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lint dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          pip install yamllint
+          curl -sL https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
+          sudo chmod +x /usr/local/bin/hadolint
+
+      - name: Install just
+        uses: extractions/setup-just@v2
+
+      - name: Run linters
+        run: just lint
