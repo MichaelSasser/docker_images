@@ -64,6 +64,7 @@ npm config set loglevel verbose
 npm config ls -l
 
 printf "\n\t🐋 Installing JS tools 🐋\t\n"
+npm install -g promise-retry
 npm install -g npm
 npm install -g pnpm
 npm install -g yarn
