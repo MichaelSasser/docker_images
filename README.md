@@ -14,7 +14,8 @@ scheduled to keep the images and their tools up-to-date.
 ## Ubuntu
 
 Our general-purpose image, which includes various tools for building and
-testing. It is expected that the extracted image is 5 GB to 6 GB in size.
+testing. The extracted image should be between **6 and 7 GB** in size, or
+roughly 2 GB compressed.
 
 - **Stable**: [ubuntu:24.04](ghcr.io/MichaelSasser/ubuntu:24.04),
   [ubuntu:latest](ghcr.io/MichaelSasser/ubuntu:latest)
