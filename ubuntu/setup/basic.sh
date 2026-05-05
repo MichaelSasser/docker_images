@@ -12,8 +12,8 @@ case "$(uname -m)" in
 'x86_64') common_packages_filter="" ;;
 *) common_packages_filter="del(.apt.common_packages[] | select(. == \"lib32z1\"))" ;;
 esac
-common_packages=$(jq -r "$common_packages_filter .apt.common_packages[]" "/imagegeneration/toolset.json")
-cmd_packages=$(jq -r ".apt.cmd_packages[]" "/imagegeneration/toolset.json")
+common_packages=$(jq -r "$common_packages_filter .apt.common_packages[]" "/imagegeneration/toolset.json" | sed 's/^netcat$/netcat-openbsd/')
+cmd_packages=$(jq -r ".apt.cmd_packages[]" "/imagegeneration/toolset.json" | sed 's/^netcat$/netcat-openbsd/')
 # we depend on re-splitting behaviour here
 # shellcheck disable=SC2068
 apt-get install -y --no-install-recommends ${common_packages[@]} ${cmd_packages[@]}
