@@ -1,5 +1,5 @@
-[![Scheduled build](https://github.com/MichaelSasser/docker_images/actions/workflows/build-default.yml/badge.svg?event=schedule)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-default.yml)
-[![On-demand build](https://github.com/MichaelSasser/docker_images/actions/workflows/build-default.yml/badge.svg?event=workflow_dispatch)](https://github.com/MichaelSasser/docker_images/actions/workflows/build-default.yml)
+[![Scheduled build](https://github.com/MichaelSasser/docker_images/actions/workflows/build.yml/badge.svg?event=schedule)](https://github.com/MichaelSasser/docker_images/actions/workflows/build.yml)
+[![On-demand build](https://github.com/MichaelSasser/docker_images/actions/workflows/build.yml/badge.svg?event=workflow_dispatch)](https://github.com/MichaelSasser/docker_images/actions/workflows/build.yml)
 
 <!-- [![Linter](https://github.com/MichaelSasser/docker_images/actions/workflows/lint.yml/badge.svg)](https://github.com/MichaelSasser/docker_images/actions/workflows/lint.yml) -->
 
@@ -34,7 +34,7 @@ build times went down to under 2 hours.
 The build system rewrite shaves off additional 90% of that, bringing it down
 to under 10 minutes for the entire build.
 
-## The Default Image
+## The Ubuntu Image
 
 This image is based on the "Custom", "Rust" and "JavaScript" image from the
 original project. Many of the JavaScript tools have been removed and some
@@ -50,11 +50,11 @@ between 5 GB and 6 GB.
 
 #### Stable
 
-- [default-24.04](ghcr.io/MichaelSasser/ubuntu:default-24.04), [default-latest](ghcr.io/MichaelSasser/ubuntu:default-latest)
+- [ubuntu-24.04](ghcr.io/MichaelSasser/ubuntu:ubuntu-24.04), [ubuntu-latest](ghcr.io/MichaelSasser/ubuntu:ubuntu-latest)
 
 #### Development
 
-- [default-24.04-dev](ghcr.io/MichaelSasser/ubuntu:default-24.04-dev), [default-latest-dev](ghcr.io/MichaelSasser/ubuntu:default-latest-dev)
+- [ubuntu-24.04-dev](ghcr.io/MichaelSasser/ubuntu:ubuntu-24.04-dev), [ubuntu-latest-dev](ghcr.io/MichaelSasser/ubuntu:ubuntu-latest-dev)
 
 ### Tools
 
