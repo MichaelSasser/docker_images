@@ -57,14 +57,16 @@ cargo binstall -V || {
 echo '::endgroup::'
 
 echo 'group::Installing Tools with Cargo Binstall'
-cargo binstall -y \
+cargo binstall -y --maximum-resolution-timeout 60 \
   bindgen-cli \
   cbindgen \
   cargo-audit \
   cargo-outdated \
   cargo-hack \
   cargo-semver-checks \
-  cargo-llvm-cov
+  cargo-llvm-cov \
+  cargo-deny
+
 chmod -R 777 "$(dirname "${RUSTUP_HOME}")"
 echo '::endgroup::'
 

@@ -46,7 +46,7 @@ The lists below (click to unfold) show most of the tools included in the image.
 - Tools:
   - `binstall`
     - `bindgen-cli`, `cbindgen`, `cargo-audit`, `cargo-outdated`, `cargo-hack`,
-      `cargo-semver-checks`, `cargo-llvm-cov`
+      `cargo-semver-checks`, `cargo-llvm-cov`, `cargo-deny`
 
 </details>
 
@@ -124,6 +124,8 @@ The lists below (click to unfold) show most of the tools included in the image.
   server
 - [ryl](https://github.com/owenlamont/ryl) - YAML linter (drop in replacement
   for yamllint)
+- [just](https://github.com/casey/just) - A command runner for project
+  automation
 
 </details>
 

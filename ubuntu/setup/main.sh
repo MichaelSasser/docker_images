@@ -428,6 +428,10 @@ echo '::group::Installing: tombi'
 curl --proto '=https' --tlsv1.2 -fsSL https://tombi-toml.github.io/tombi/install.sh | sh -s -- --install-dir /usr/local/bin
 echo '::endgroup::'
 
+echo '::group::Installing: just'
+cargo binstall -y --maximum-resolution-timeout 60 --install-path /usr/local/bin just
+echo '::endgroup::'
+
 #
 # Cleanup
 #
