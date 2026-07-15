@@ -57,7 +57,7 @@ The lists below (click to unfold) show most of the tools included in the image.
 - System Python: `python3` with `pip3` installed with the system's package
   manager
   - Installed using `pip`: `toml`, `ansible-lint`, `ansible-navigator`,
-    `ansible-builder`, `yamllint`, `PyYAML`
+    `ansible-builder`, `yamllint` (DEPRECATED: use ryl instread), `PyYAML`
   - Installed using system's package manager: `ansible`, `python3-openssl`,
     `python3-socks`, `python3-docker`, `python3-dockerpty`,
     `python3-ansible-runner`
@@ -118,7 +118,12 @@ The lists below (click to unfold) show most of the tools included in the image.
   (installed via `binstall`) - A modern typesetting system
 - [tea](https://github.com/gitea/tea) - A command line interface for
   Gitea/Forgejo
-- [taplo](https://github.com/tamasfe/taplo) - A fast TOML toolkit
+- [taplo](https://github.com/tamasfe/taplo) - A fast TOML toolkit (DEPRECATED:
+  Use `tombi` instead)
+- [tombi](https://github.com/tombi-toml/tombi) - TOML formatter/linter/language
+  server
+- [ryl](https://github.com/owenlamont/ryl) - YAML linter (drop in replacement
+  for yamllint)
 
 </details>
 

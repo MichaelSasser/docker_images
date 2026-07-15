@@ -43,6 +43,7 @@ sed "s|PATH=|PATH=${CARGO_HOME}/bin:${RUSTUP_HOME}/bin|g" -i /etc/environment
 echo '::group::Installing Cargo Binstall'
 cat >>/etc/environment <<EOF
 BINSTALL_MAXIMUM_RESOLUTION_TIMEOUT=60
+BINSTALL_DISABLE_TELEMETRY=true
 EOF
 
 . /etc/environment

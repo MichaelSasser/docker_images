@@ -328,7 +328,7 @@ vault version
 echo '::endgroup::'
 
 #
-# taplo-cli (from default.sh)
+# taplo-cli (from default.sh) [DEPRECATED: use tombi instead]
 #
 echo '::group::Installing taplo-cli'
 TAPLO_URL="$(curl --proto '=https' --tlsv1.2 -sSf https://api.github.com/repos/tamasfe/taplo/releases/latest | jq -r ".assets.[].browser_download_url | select(. | contains(\"linux-$(uname -m)\"))")"
@@ -343,7 +343,7 @@ echo '::endgroup::'
 # typst-cli (from default.sh)
 #
 echo '::group::Installing: typst-cli'
-cargo binstall -y --maximum-resolution-timeout 60 typst-cli
+cargo binstall -y --maximum-resolution-timeout 60 --install-path /usr/local/bin typst-cli
 echo '::endgroup::'
 
 #
@@ -374,6 +374,7 @@ apt-get install -y --no-install-recommends \
 echo 'Ensure break-system-packages is set for system Python'
 python3 -m pip config set --global global.break-system-packages true
 
+# [DEPRECATED]: Use ryl instead
 echo 'Installing Yamllint'
 pip3 install --no-cache-dir --ignore-installed --root-user-action=ignore PyYAML
 
@@ -411,6 +412,20 @@ uv tool update-shell
 uv tool install --python-preference=managed pre-commit
 uv tool install --python-preference=managed tox
 uv cache clean
+echo '::endgroup::'
+
+#
+# ryl
+#
+echo '::group::Installing: ryl'
+cargo binstall -y --maximum-resolution-timeout 60 --install-path /usr/local/bin ryl
+echo '::endgroup::'
+
+#
+# tombi
+#
+echo '::group::Installing: tombi'
+curl --proto '=https' --tlsv1.2 -fsSL https://tombi-toml.github.io/tombi/install.sh | sh -s -- --install-dir /usr/local/bin
 echo '::endgroup::'
 
 #
