@@ -46,7 +46,7 @@ The lists below (click to unfold) show most of the tools included in the image.
 - Tools:
   - `binstall`
     - `bindgen-cli`, `cbindgen`, `cargo-audit`, `cargo-outdated`, `cargo-hack`,
-      `cargo-semver-checks`, `cargo-llvm-cov`, `cargo-deny`
+      `cargo-semver-checks`, `cargo-llvm-cov`, `cargo-deny`, `cargo-fuzz`
 
 </details>
 

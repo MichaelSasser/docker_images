@@ -65,7 +65,8 @@ cargo binstall -y --maximum-resolution-timeout 60 \
   cargo-hack \
   cargo-semver-checks \
   cargo-llvm-cov \
-  cargo-deny
+  cargo-deny \
+  cargo-fuzz
 
 chmod -R 777 "$(dirname "${RUSTUP_HOME}")"
 echo '::endgroup::'
