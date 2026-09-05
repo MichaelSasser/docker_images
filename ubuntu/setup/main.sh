@@ -347,6 +347,13 @@ cargo binstall -y --maximum-resolution-timeout 60 --install-path /usr/local/bin 
 echo '::endgroup::'
 
 #
+# release-plz
+#
+echo '::group::Installing: release-plz'
+cargo binstall -y --maximum-resolution-timeout 60 --install-path /usr/local/bin release-plz
+echo '::endgroup::'
+
+#
 # cmake (from default.sh)
 #
 echo '::group::Installing: cmake'
